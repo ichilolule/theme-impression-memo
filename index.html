@@ -1,0 +1,519 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f3f9">
+  <meta name="robots" content="noindex,nofollow">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src 'none'; form-action 'none'; base-uri 'none'; object-src 'none'">
+  <title>テーマ印象メモ</title>
+  <style>
+    :root { color-scheme: light; --ink:#292932; --muted:#666572; --line:#dedbe7; --paper:#fff; --bg:#f6f3f9; --accent:#6545a3; --soft:#efe9fa; --candidate:#9b600e; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--bg); color:var(--ink); font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif; line-height:1.6; }
+    button,input,textarea { font:inherit; }
+    button { cursor:pointer; }
+    .wrap { max-width:1360px; margin:auto; padding:20px 18px 48px; }
+    header { display:flex; align-items:flex-start; justify-content:space-between; gap:20px; margin-bottom:14px; }
+    h1 { font-size:clamp(1.5rem,3vw,2rem); margin:0 0 5px; line-height:1.3; }
+    h2 { font-size:1.2rem; margin:0 0 14px; }
+    h3 { font-size:1rem; margin:0 0 8px; }
+    p { margin:0; }
+    .sub,.hint,.save-status { color:var(--muted); font-size:.88rem; }
+    .save-status { white-space:nowrap; padding-top:6px; }
+    .grid { display:grid; grid-template-columns:minmax(0,1fr) minmax(290px,340px); gap:16px; align-items:start; }
+    .panel { background:var(--paper); border:1px solid var(--line); border-radius:14px; padding:17px; box-shadow:0 4px 20px #34234c0b; }
+    .stack { display:grid; gap:12px; }
+    .fields { display:grid; gap:12px; }
+    .field-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    label { display:block; font-weight:650; font-size:.9rem; }
+    input[type="text"],textarea { display:block; width:100%; min-width:0; margin-top:5px; padding:9px 11px; border:1px solid #c9c5d2; border-radius:9px; background:#fff; color:var(--ink); }
+    input:focus-visible,textarea:focus-visible,button:focus-visible { outline:3px solid #aa90dc; outline-offset:2px; }
+    textarea { resize:vertical; min-height:75px; }
+    .choices { display:grid; gap:0; }
+    .choice-section { display:grid; grid-template-columns:128px minmax(0,1fr); align-items:start; gap:8px; border-top:1px solid var(--line); padding:8px 0; }
+    .choice-section:first-child { border-top:0; }
+    .section-head { display:flex; align-items:center; gap:5px; min-height:31px; }
+    .section-head h3 { margin:0; font-size:.88rem; line-height:1.35; }
+    .chips { display:flex; flex-wrap:wrap; gap:5px; }
+    .chip { border:1px solid #c9c5d2; background:#fff; color:var(--ink); border-radius:100px; padding:3px 9px; min-height:31px; font-size:.86rem; line-height:1.3; }
+    .chip[data-state="adopted"] { color:#fff; background:var(--accent); border-color:var(--accent); }
+    .chip[data-state="candidate"] { color:#784700; background:#fff1d9; border-color:#cc9a4f; }
+    .chip-wrap { display:inline-flex; align-items:center; gap:2px; }
+    .remove-option { border:0; background:transparent; color:#755c74; font-size:1rem; padding:2px 4px; }
+    .small-btn,.action,.subtle { border:1px solid #bcb4cb; border-radius:9px; background:#fff; color:var(--ink); padding:8px 13px; }
+    .small-btn:hover,.action:hover,.subtle:hover { background:var(--soft); }
+    .delete { border:0; background:transparent; color:#755c74; font-size:.8rem; padding:2px 4px; }
+    .legend { display:flex; flex-wrap:wrap; gap:6px 13px; color:var(--muted); font-size:.82rem; margin:6px 0 10px; }
+    .legend strong { color:var(--ink); }
+    .quick-form { display:grid; grid-template-columns:minmax(0,1fr) auto auto; align-items:end; gap:8px; }
+    .quick-form input[type="text"] { margin:0; }
+    .quick-check { white-space:nowrap; font-weight:400; font-size:.84rem; display:flex; gap:5px; align-items:center; min-height:42px; }
+    .quick-check input { margin:0; }
+    .quick-target { display:flex; align-items:center; flex-wrap:wrap; gap:7px; margin-top:8px; }
+    select { font:inherit; color:var(--ink); border:1px solid #c9c5d2; border-radius:9px; background:#fff; padding:8px 10px; max-width:100%; }
+    .quick-target select { min-width:230px; }
+    .matches { display:flex; flex-wrap:wrap; gap:5px; margin-top:9px; }
+    .match { border:1px solid var(--line); background:#faf8ff; border-radius:8px; padding:5px 9px; text-align:left; font-size:.84rem; }
+    .match strong { display:block; line-height:1.2; }
+    .match small { color:var(--muted); }
+    .tabs { display:flex; gap:6px; overflow-x:auto; padding:5px 0; margin:7px 0 6px; position:sticky; top:0; z-index:2; background:var(--paper); }
+    .tab { flex:none; border:1px solid var(--line); border-radius:9px; background:#fff; padding:7px 10px; font-size:.87rem; white-space:nowrap; }
+    .tab[aria-selected="true"] { background:var(--accent); border-color:var(--accent); color:white; }
+    .tab-count { font-size:.75rem; margin-left:3px; opacity:.8; }
+    details.panel > summary { cursor:pointer; font-weight:700; font-size:1.05rem; }
+    details.panel[open] > summary { margin-bottom:12px; }
+    details.add-category { margin-top:8px; border-top:1px solid var(--line); padding-top:8px; }
+    details.add-category > summary { cursor:pointer; font-size:.84rem; color:var(--accent); }
+    .category-form { display:flex; flex-wrap:wrap; gap:7px; margin-top:8px; }
+    .category-form input { max-width:260px; margin:0; }
+    .gap-modes { display:flex; flex-wrap:wrap; gap:7px; }
+    .gap-modes label { font-weight:400; font-size:.88rem; }
+    .gap-modes input { position:absolute; opacity:0; }
+    .gap-modes span { display:block; border:1px solid #c9c5d2; border-radius:100px; padding:6px 12px; cursor:pointer; }
+    .gap-modes input:checked + span { background:var(--accent); border-color:var(--accent); color:white; }
+    .gap-modes input:focus-visible + span { outline:3px solid #aa90dc; outline-offset:2px; }
+    .gap-extra { margin-top:11px; }
+    .gap-extra .candidate-toggle { display:flex; align-items:center; gap:7px; margin-top:7px; font-weight:400; }
+    .gap-extra .candidate-toggle input { margin:0; }
+    .preview { white-space:pre-wrap; overflow-wrap:anywhere; overflow-y:auto; background:#fcfbff; border:1px solid var(--line); border-radius:10px; padding:15px; min-height:190px; max-height:50vh; font-size:.9rem; }
+    .actions { display:flex; flex-wrap:wrap; gap:8px; margin:13px 0 7px; }
+    .primary { background:var(--accent); border-color:var(--accent); color:white; font-weight:700; }
+    .primary:hover { background:#52348b; }
+    .message { min-height:1.6em; color:#345f3b; font-size:.88rem; }
+    .sticky { position:sticky; top:16px; }
+    .foot { display:flex; justify-content:flex-end; margin-top:12px; }
+    .transfer { margin-top:12px; border-top:1px solid var(--line); padding-top:10px; }
+    .transfer > summary { cursor:pointer; color:var(--accent); font-size:.87rem; font-weight:650; }
+    .transfer .hint { margin:8px 0; }
+    .transfer textarea { min-height:65px; font-size:.78rem; }
+    .transfer .small-btn { margin-top:7px; }
+    .mobile-action { display:none; }
+    @media(max-width:880px) { .grid { grid-template-columns:1fr; } .sticky { position:static; } .wrap { padding:14px 10px 40px; } header { display:block; } .save-status { padding-top:5px; } }
+    @media(max-width:880px) { .wrap { padding-bottom:105px; } .mobile-action { display:block; position:fixed; left:0; right:0; bottom:0; z-index:5; padding:10px max(12px, env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left)); background:#fff; border-top:1px solid var(--line); box-shadow:0 -4px 16px #34234c14; } .mobile-action .action { width:100%; } body:has(input:focus,textarea:focus) .mobile-action { display:none; } }
+    @media(max-width:560px) { .field-row { grid-template-columns:1fr; } .quick-form { grid-template-columns:1fr auto; } .quick-check { grid-column:1 / -1; min-height:25px; } .choice-section { grid-template-columns:1fr; gap:4px; } .section-head { min-height:0; } }
+    @media print { body { background:white; } .wrap { max-width:none; padding:0; } header,.editor,.actions,.message,.hint,.foot,.mobile-action { display:none !important; } .grid { display:block; } .panel { border:0; box-shadow:none; padding:0; } .sticky { position:static; } .preview { border:0; padding:0; max-height:none; overflow:visible; } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div><h1>テーマ印象メモ</h1><p class="sub">印象を選び、制作の手掛かりを添えて、チャットへそのままコピーできます。入力はこの端末のブラウザに保存され、サイトへ送信されません。</p></div>
+      <p id="saveStatus" class="save-status" aria-live="polite"></p>
+    </header>
+    <main class="grid">
+      <div class="stack editor">
+        <details class="panel" aria-labelledby="contextTitle">
+          <summary id="contextTitle">今回の制作（題材・テーマ・誰に／何を／どう思われたいか）</summary>
+          <div class="fields">
+            <div class="field-row"><label>題材<input type="text" data-field="題材" placeholder="例：曲、キャラクター、依頼内容"></label><label>テーマ<input type="text" data-field="テーマ" placeholder="まだ曖昧でも大丈夫"></label></div>
+            <div class="field-row"><label>誰に<input type="text" data-field="誰に" placeholder="例：見る人に"></label><label>何を<input type="text" data-field="何を" placeholder="例：人物の暮らしを"></label></div>
+            <label>どう思われたいか<input type="text" data-field="どう思われたいか" placeholder="例：親しみがあると感じてほしい"></label>
+            <div class="field-row"><label>確定条件・変えないこと<input type="text" data-field="確定条件" placeholder="決まっている場合だけ"></label><label>最終成果物の形<input type="text" data-field="最終成果物の形" placeholder="必要な場合だけ"></label></div>
+          </div>
+        </details>
+        <section class="panel" aria-labelledby="quickTitle">
+          <h2 id="quickTitle">決まっている語から選ぶ</h2>
+          <form id="quickForm" class="quick-form">
+            <input id="quickInput" type="text" maxlength="120" autocomplete="off" placeholder="例：夜。既存の語ならそのまま選択" aria-label="すぐ選ぶ印象語">
+            <label class="quick-check"><input id="quickCandidate" type="checkbox">候補「？」</label>
+            <button id="quickSubmit" class="action primary" type="submit">採用する</button>
+          </form>
+          <div id="quickMatches" class="matches" aria-live="polite"></div>
+          <div class="quick-target"><label for="quickTarget">新しい語・別の項目への追加先</label><select id="quickTarget"><option value="">追加先を選ぶ</option></select></div>
+          <p id="quickMessage" class="message" role="status"></p>
+          <details class="add-category"><summary>新しい印象項目を作る</summary><form id="categoryForm" class="category-form"><input id="categoryName" type="text" maxlength="50" placeholder="項目名" aria-label="新しい印象項目の名前"><select id="categoryGroup" aria-label="新しい項目の大分類"></select><button class="small-btn" type="submit">項目を追加</button></form></details>
+        </section>
+        <section class="panel" aria-labelledby="impressionsTitle">
+          <h2 id="impressionsTitle">印象を選ぶ</h2>
+          <p class="legend"><span><strong>1回</strong> 採用 ✓</span><span><strong>2回</strong> 候補 ？</span><span><strong>3回</strong> 未選択</span><span>同じ行で複数選べます</span></p>
+          <div id="groupTabs" class="tabs" role="tablist" aria-label="印象の大分類"></div>
+          <p id="groupHint" class="hint"></p>
+          <div id="sections" class="choices" role="tabpanel"></div>
+        </section>
+        <details class="panel" aria-labelledby="gapTitle">
+          <summary id="gapTitle">ギャップの手掛かり</summary>
+          <p class="hint">ここは意味が重なるため、選択は1つにします。空欄のままでも進めます。</p>
+          <div id="gapModes" class="gap-modes" role="radiogroup" aria-label="ギャップの扱い"></div>
+          <div class="gap-extra"><label>具体的な案・方向<input id="gapText" type="text" placeholder="例：やわらかな外見と辛いもの好き"></label><label class="candidate-toggle"><input id="gapCandidate" type="checkbox">この案は候補「？」</label></div>
+        </details>
+        <details class="panel" aria-labelledby="notesTitle">
+          <summary id="notesTitle">自由記述</summary>
+          <label>その他のメモ<textarea id="generalNote" placeholder="例：衣装・表情・背景などの補足"></textarea></label>
+          <p class="hint">改行も含めて、入力したままコピーします。</p>
+        </details>
+      </div>
+      <aside class="panel sticky" aria-labelledby="previewTitle">
+        <h2 id="previewTitle">コピーする文章</h2>
+        <div id="preview" class="preview" aria-live="polite"></div>
+        <div class="actions"><button id="copyButton" type="button" class="action primary">文章をコピー</button><button id="pngButton" type="button" class="action">PNG保存</button></div>
+        <p id="message" class="message" role="status"></p>
+        <p class="hint">PNGは保存先を選び、同じファイルを更新できます。対応していないブラウザではスクリーンショットを使えます。</p>
+        <details class="transfer">
+          <summary>Webアプリへ入力を引き継ぐ</summary>
+          <p class="hint">今の画面で「入力データをコピー」し、Webアプリ側の下の欄に貼り付けて読み込みます。</p>
+          <button id="transferCopy" type="button" class="small-btn">入力データをコピー</button>
+          <label>引き継ぎデータを貼り付け<textarea id="transferInput" placeholder="コピーした入力データをここへ貼り付け"></textarea></label>
+          <button id="transferLoad" type="button" class="small-btn">貼り付けたデータを読み込む</button>
+        </details>
+        <div class="foot"><button id="resetButton" type="button" class="subtle">入力を消去</button></div>
+      </aside>
+    </main>
+    <div class="mobile-action"><button id="mobileCopyButton" type="button" class="action primary">文章をコピー</button></div>
+  </div>
+  <script>
+    (() => {
+      'use strict';
+      const STORAGE_KEY = 'theme-impression-memo-1';
+      const groups = [
+        ['feeling','印象・気分'],['world','世界・背景'],['character','キャラクター'],
+        ['color','色・光'],['composition','画面・構図']
+      ];
+      const axis = (id,name,group,words) => ({id,name,group,items:words.map(text=>({text,state:0,custom:false})),custom:false});
+      const defaults = [
+        axis('base-5','魅力・雰囲気','feeling',['かわいい','かっこいい','やさしい','力強い','美しい','おしゃれ','面白い','不思議']),
+        axis('extra-feeling-mood','気分','feeling',['楽しい','穏やか','切ない','寂しい','晴れやか','気だるい']),
+        axis('extra-feeling-tension','安心と緊張','feeling',['安心する','落ち着く','そわそわする','どきどきする','ひりひりする','不穏']),
+        axis('base-0','活気','feeling',['静か','にぎやか','元気','軽快','のんびり','ひっそり']),
+        axis('base-1','華やかさ','feeling',['素朴','華やか']),
+        axis('extra-feeling-taste','甘さ','feeling',['甘い','甘酸っぱい','ほろ苦い','さっぱり','渋い','辛口']),
+        axis('extra-feeling-familiar','親しみ','feeling',['親しみやすい','素朴','愛嬌がある','気品がある','近寄りがたい','神秘的']),
+        axis('extra-feeling-humor','笑いの質','feeling',['ほほえましい','おちゃめ','間が抜けている','シュール','皮肉っぽい']),
+        axis('extra-feeling-after','余韻','feeling',['満たされる','懐かしい','名残惜しい','希望がある','続きが気になる','謎が残る']),
+
+        axis('base-4','世界観','world',['日常的','幻想的']),
+        axis('base-2','格式','world',['カジュアル','フォーマル','スポーティ','ワーク','部屋着','晴れ着']),
+        axis('extra-world-distance','生活との距離','world',['日常','ちょっと特別','お祝い','冒険','夢','おとぎ話']),
+        axis('base-6','時代感','world',['懐かしい','現代的','未来的','時代不詳','昔話','歴史もの','レトロ','現代','近未来','遠未来']),
+        axis('extra-world-culture','文化・様式','world',['和風','洋風','北欧風','東洋風','民族調','複数文化の混合']),
+        axis('extra-world-land','土地','world',['都会','住宅街','下町','田舎','森','海辺','山','異世界']),
+        axis('extra-world-place','場所の性格','world',['私的','公共','生活感がある','整っている','雑然としている','無人','廃墟']),
+        axis('base-10','季節','world',['春','夏','秋','冬','季節の変わり目','季節不詳']),
+        axis('base-11','時間帯','world',['朝','昼','夕','夜','夜明け','午後','夕暮れ','宵','深夜']),
+        axis('extra-world-weather','天気・空気','world',['快晴','薄曇り','雨','雪','霧','風','乾いた空気','湿った空気']),
+        axis('extra-world-stage','場面の段階','world',['始まる前','準備中','真っ最中','ひと休み','終わった直後','帰り道']),
+        axis('base-13','背景・デザイン・配色印象','world',['エモい','あたたかい','透明感','ポップ','ケルト','レトロ','北欧','西洋','和風','夢かわ','雑誌風']),
+
+        axis('base-12','キャラ印象','character',['あざとい','あほの子','ゆるふわ','元気','ガーリー','自然','内気','クール','上品']),
+        axis('extra-character-personality','性格の見え方','character',['無邪気','おっとり','内気','強気','クール','生真面目','いたずら好き']),
+        axis('extra-character-skill','しっかり度','character',['頼もしい','器用','背伸びしている','不器用','隙がある','ぽんこつ']),
+        axis('extra-character-mind','心の状態','character',['夢中','期待','満足','照れ','戸惑い','退屈','物思い','決意']),
+        axis('extra-character-manner','振る舞い','character',['堂々','遠慮がち','無防備','気取っている','自然体','よそゆき']),
+        axis('extra-character-movement','動き','character',['じっとしている','くつろぐ','歩く','急ぐ','弾む','踏ん張る','浮遊する']),
+        axis('extra-character-relationship','関係性','character',['ひとりを楽しむ','孤独','友人','相棒','家族','恋人','憧れの相手']),
+        axis('extra-character-closeness','心の距離','character',['気心が知れている','探り合う','近づきたい','照れ合う','すれ違う','支え合う']),
+        axis('extra-character-viewer','見る人との関係','character',['目が合う','話しかけてくる','気づいていない','こちらを招く','遠くから見守る']),
+        axis('extra-character-moment','見せたい瞬間','character',['いつもの姿','ふとした素顔','失敗','発見','待ち合わせ','再会','別れ際','小さな達成']),
+
+        axis('base-7','色のイメージ','color',[]),
+        axis('extra-color-association','色の連想','color',['桜色','クリーム','はちみつ','ミント','ソーダ','深海','土','宝石','夕焼け']),
+        axis('extra-color-hue','色相の方向','color',['赤','橙','黄','緑','青','紫','ピンク','茶','白','灰','黒']),
+        axis('base-8','色の性質','color',['淡い','鮮やか']),
+        axis('extra-color-saturation','色の鮮やかさ','color',['鮮やか','ほどよい','くすんだ','ほぼ無彩色']),
+        axis('extra-color-lightness','色の明るさ','color',['白っぽい','淡い','中間的','深い','暗い']),
+        axis('base-9','コントラスト','color',['低コントラスト','高コントラスト']),
+        axis('extra-color-palette','配色の関係','color',['近い色でまとめる','反対の色を効かせる','単色中心','多色','差し色ひとつ']),
+        axis('extra-color-light','光','color',['やわらかい','強い','木漏れ日','逆光','窓明かり','街灯','ろうそく','自発光']),
+        axis('base-3','温度感','color',['あたたかい','ひんやり','涼しい','ぬるい','暑い','冷たい中にぬくもり']),
+        axis('extra-color-texture','手触り','color',['ふわふわ','さらさら','ざらざら','すべすべ','しっとり','ごつごつ']),
+        axis('extra-color-material','素材感','color',['マット','つやつや','透明','半透明','金属','布','紙','木','陶器']),
+        axis('extra-color-weight','重さ・硬さ','color',['軽い','重い','薄い','厚い','やわらかい','硬い','繊細','頑丈']),
+
+        axis('extra-composition-shape','形','composition',['丸い','角ばった','細長い','ころんとした','幾何学的','有機的']),
+        axis('extra-composition-density','密度','composition',['すっきり','余白が多い','ほどよい','にぎやか','ぎっしり']),
+        axis('extra-composition-order','秩序','composition',['整然','規則的','ゆるい','不揃い','雑然','混沌']),
+        axis('extra-composition-motion','動勢','composition',['安定','ゆらぎ','流れる','跳ねる','傾く','渦巻く']),
+        axis('extra-composition-space','空間','composition',['開放的','こぢんまり','包まれる','狭苦しい','広大','奥行きがある','平面的']),
+        axis('extra-composition-distance','距離','composition',['至近距離','手が届く距離','全身が見える','風景の中の小さな人物']),
+        axis('extra-composition-rendering','描写の方向','composition',['写実的','デフォルメ','記号的','絵本風','装飾的','図案的']),
+        axis('extra-composition-focus','主役にする魅力','composition',['顔','表情','仕草','衣装','関係性','小物','空間','色','光'])
+      ];
+      const modes = [['','未指定'],['text','自由記述'],['idea','案が欲しい'],['none','今回は入れない'],['undecided','未定']];
+      const blank = () => ({fields:{},sections:defaults.map(s=>({...s,items:s.items.map(item=>({...item}))})),activeGroup:'feeling',gapMode:'',gapText:'',gapCandidate:false,note:''});
+      const parseSaved = () => {
+        try {
+          const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+          if (!saved || !Array.isArray(saved.sections)) return blank();
+          const fresh = blank();
+          fresh.fields = saved.fields && typeof saved.fields === 'object' ? saved.fields : {};
+          fresh.sections = fresh.sections.map(base => {
+            const old = saved.sections.find(s => s && s.id === base.id);
+            if (!old || !Array.isArray(old.items)) return base;
+            const known = base.items.map(item => {
+              const match = old.items.find(x => x && x.text === item.text);
+              return {...item,state:validState(match?.state)};
+            });
+            const added = old.items.filter(x => x && x.custom && typeof x.text === 'string' && x.text.trim() && !known.some(y=>y.text===x.text)).map(x=>({text:x.text,state:validState(x.state),custom:true}));
+            return {...base,items:[...known,...added]};
+          });
+          for (const extra of saved.sections.filter(s=>s && s.custom && typeof s.name==='string' && Array.isArray(s.items))) {
+            if (fresh.sections.some(s=>s.id===extra.id)) continue;
+            fresh.sections.push({id:String(extra.id),name:extra.name,group:groups.some(g=>g[0]===extra.group)?extra.group:'feeling',custom:true,items:extra.items.filter(x=>x && typeof x.text==='string' && x.text.trim()).map(x=>({text:x.text,state:validState(x.state),custom:true}))});
+          }
+          fresh.activeGroup = saved.activeGroup==='all' || groups.some(g=>g[0]===saved.activeGroup) ? saved.activeGroup : 'feeling';
+          fresh.gapMode = modes.some(m=>m[0]===saved.gapMode) ? saved.gapMode : '';
+          fresh.gapText = typeof saved.gapText === 'string' ? saved.gapText : '';
+          fresh.gapCandidate = saved.gapCandidate === true;
+          fresh.note = typeof saved.note === 'string' ? saved.note : '';
+          return fresh;
+        } catch { return blank(); }
+      };
+      function validState(value) { return value === 1 || value === 2 ? value : 0; }
+      let data = parseSaved();
+      const sectionsEl = document.getElementById('sections');
+      const previewEl = document.getElementById('preview');
+      const messageEl = document.getElementById('message');
+      const quickMessageEl = document.getElementById('quickMessage');
+      const saveStatus = document.getElementById('saveStatus');
+      const display = value => String(value || '').trim();
+      const showMessage = value => { messageEl.textContent=value; quickMessageEl.textContent=value; };
+      function save() {
+        try { localStorage.setItem(STORAGE_KEY,JSON.stringify(data)); saveStatus.textContent='このブラウザに自動保存'; }
+        catch { saveStatus.textContent='自動保存できません。文章をコピーして残してください'; }
+        previewEl.textContent = memoText();
+      }
+      function memoText() {
+        const lines = ['【テーマ印象メモ】'];
+        for (const key of ['題材','テーマ','誰に','何を','どう思われたいか','確定条件','最終成果物の形']) {
+          const value = display(data.fields[key]);
+          if (value) lines.push(key+'：'+value);
+        }
+        for (const section of data.sections) {
+          const values = section.items.filter(item=>item.state).map(item=>item.text+(item.state===2?'？':''));
+          if (values.length) lines.push(section.name+'：'+values.join('／'));
+        }
+        let gap = '';
+        if (data.gapMode === 'text' && data.gapText.trim()) gap = data.gapText + (data.gapCandidate ? '？' : '');
+        else gap = modes.find(mode=>mode[0]===data.gapMode)?.[1] || '';
+        if (gap) lines.push('ギャップ：'+gap);
+        if (data.note.trim()) lines.push('自由記述：'+data.note);
+        return lines.join('\n');
+      }
+      const quickInput = document.getElementById('quickInput');
+      const quickTarget = document.getElementById('quickTarget');
+      const quickCandidate = document.getElementById('quickCandidate');
+      const normalize = value => value.normalize('NFKC').toLocaleLowerCase('ja');
+      function matchesFor(query) {
+        const needle = normalize(query.trim());
+        if (!needle) return [];
+        const found=[];
+        for (const section of data.sections) for (const item of section.items) {
+          const text=normalize(item.text);
+          if (text.includes(needle) || needle.includes(text)) found.push({section,item,exact:text===needle});
+        }
+        found.sort((a,b)=>Number(b.exact)-Number(a.exact) || Number(b.section.group===data.activeGroup)-Number(a.section.group===data.activeGroup));
+        return found;
+      }
+      function renderMatches() {
+        const host=document.getElementById('quickMatches'); host.replaceChildren();
+        const matches=matchesFor(quickInput.value).slice(0,12);
+        for (const entry of matches) {
+          const button=document.createElement('button'); button.type='button'; button.className='match';
+          const strong=document.createElement('strong'); strong.textContent=entry.item.text+(entry.item.state===1?' ✓':entry.item.state===2?' ？':'');
+          const small=document.createElement('small'); small.textContent=groups.find(g=>g[0]===entry.section.group)?.[1]+' ／ '+entry.section.name;
+          button.append(strong,small); button.addEventListener('click',()=>chooseMatch(entry)); host.append(button);
+        }
+      }
+      function renderTargetOptions() {
+        const previous=quickTarget.value; quickTarget.replaceChildren();
+        const empty=document.createElement('option'); empty.value=''; empty.textContent='追加先を選ぶ'; quickTarget.append(empty);
+        for (const [id,label] of groups) {
+          const optionGroup=document.createElement('optgroup'); optionGroup.label=label;
+          for (const section of data.sections.filter(s=>s.group===id)) {
+            const option=document.createElement('option'); option.value=section.id; option.textContent=section.name; optionGroup.append(option);
+          }
+          quickTarget.append(optionGroup);
+        }
+        quickTarget.value=data.sections.some(s=>s.id===previous)?previous:'';
+      }
+      function renderTabs() {
+        const host=document.getElementById('groupTabs'); host.replaceChildren();
+        for (const [id,label] of [...groups,['all','すべて表示']]) {
+          const button=document.createElement('button'); button.type='button'; button.className='tab'; button.setAttribute('role','tab');
+          button.setAttribute('aria-selected',String(data.activeGroup===id)); button.setAttribute('aria-controls','sections');
+          const count=data.sections.filter(s=>id==='all'||s.group===id).reduce((n,s)=>n+s.items.filter(item=>item.state).length,0);
+          button.textContent=label;
+          if (count) { const badge=document.createElement('span'); badge.className='tab-count'; badge.textContent='('+count+')'; button.append(badge); }
+          button.addEventListener('click',()=>{data.activeGroup=id; if(id!=='all') document.getElementById('categoryGroup').value=id; renderTabs(); renderSections(); save(); host.querySelector('[aria-selected="true"]').focus();});
+          host.append(button);
+        }
+      }
+      function renderSections() {
+        sectionsEl.replaceChildren();
+        const hints={
+          feeling:'見た人に残したい印象や気持ち。',
+          world:'世界・暮らし・背景。Eagleの背景印象タグは正本の実名です。',
+          character:'キャラクターの魅力や関係。Eagleのキャラ印象タグは正本の実名です。',
+          color:'色名などの自由な語は、上の入力欄で追加先を選ぶと登録できます。',
+          composition:'テーマが決まった後、必要な行だけ選んでください。',
+          all:'すべての候補を一覧できます。上部の入力欄からも直接選べます。'
+        };
+        document.getElementById('groupHint').textContent=hints[data.activeGroup];
+        for (const section of data.sections.filter(s=>data.activeGroup==='all'||s.group===data.activeGroup)) {
+          const block=document.createElement('section'); block.className='choice-section';
+          const head=document.createElement('div'); head.className='section-head';
+          const title=document.createElement('h3'); title.textContent=section.name; head.append(title);
+          if (section.custom) {
+            const remove=document.createElement('button'); remove.className='delete'; remove.type='button'; remove.textContent='×';
+            remove.setAttribute('aria-label','項目「'+section.name+'」を削除');
+            remove.addEventListener('click',()=>{
+              if (!confirm('「'+section.name+'」を削除しますか？')) return;
+              data.sections=data.sections.filter(s=>s!==section); renderSections(); renderTabs(); renderTargetOptions(); renderMatches(); save();
+            }); head.append(remove);
+          }
+          block.append(head);
+          const chips=document.createElement('div'); chips.className='chips';
+          if (!section.items.length) {
+            const note=document.createElement('span'); note.className='hint'; note.textContent='上の入力欄から語を追加できます'; chips.append(note);
+          }
+          for (const item of section.items) {
+            const wrap=document.createElement('span'); wrap.className='chip-wrap';
+            const chip=document.createElement('button'); chip.type='button'; chip.className='chip';
+            const updateChip=()=>{
+              chip.dataset.state=['none','adopted','candidate'][item.state];
+              chip.textContent=(item.state===1?'✓ ':item.state===2?'？ ':'')+item.text;
+              chip.setAttribute('aria-label',item.text+'、'+['未選択','採用','候補'][item.state]+'。押すと次の状態');
+            };
+            updateChip();
+            chip.addEventListener('click',()=>{item.state=(item.state+1)%3; updateChip(); renderTabs(); renderMatches(); save();});
+            wrap.append(chip);
+            if (item.custom) {
+              const remove=document.createElement('button'); remove.type='button'; remove.className='remove-option'; remove.textContent='×';
+              remove.setAttribute('aria-label',section.name+'の「'+item.text+'」を削除');
+              remove.addEventListener('click',()=>{section.items=section.items.filter(x=>x!==item); renderSections(); renderTabs(); renderMatches(); save();});
+              wrap.append(remove);
+            }
+            chips.append(wrap);
+          }
+          block.append(chips); sectionsEl.append(block);
+        }
+      }
+      function chooseMatch(entry) {
+        entry.item.state=quickCandidate.checked?2:1; data.activeGroup=entry.section.group;
+        quickInput.value=''; quickTarget.value=''; document.getElementById('quickSubmit').textContent='採用する';
+        document.getElementById('categoryGroup').value=data.activeGroup;
+        renderMatches(); renderTabs(); renderSections(); save();
+        showMessage('「'+entry.item.text+'」を'+(entry.item.state===2?'候補':'採用')+'にしました（'+entry.section.name+'）。');
+        quickInput.focus();
+      }
+      function renderModes() {
+        const host=document.getElementById('gapModes'); host.replaceChildren();
+        for (const [value,labelText] of modes) {
+          const label=document.createElement('label'), radio=document.createElement('input'), span=document.createElement('span');
+          radio.type='radio'; radio.name='gapMode'; radio.value=value; radio.checked=data.gapMode===value;
+          radio.addEventListener('change',()=>{data.gapMode=value; save();}); span.textContent=labelText;
+          label.append(radio,span); host.append(label);
+        }
+      }
+      document.querySelectorAll('[data-field]').forEach(el=>{
+        el.value=data.fields[el.dataset.field] || '';
+        el.addEventListener('input',()=>{data.fields[el.dataset.field]=el.value; save();});
+      });
+      quickInput.addEventListener('input',()=>{quickMessageEl.textContent=''; renderMatches();});
+      quickTarget.addEventListener('change',()=>{
+        document.getElementById('quickSubmit').textContent=quickTarget.value?'追加して採用':'採用する';
+      });
+      document.getElementById('quickForm').addEventListener('submit',event=>{
+        event.preventDefault(); const value=quickInput.value.trim(); if (!value) {quickInput.focus(); return;}
+        const target=data.sections.find(s=>s.id===quickTarget.value);
+        if (target) {
+          let item=target.items.find(x=>normalize(x.text)===normalize(value));
+          if (!item) {item={text:value,state:0,custom:true}; target.items.push(item);}
+          chooseMatch({section:target,item});
+          document.getElementById('quickSubmit').textContent='採用する';
+          return;
+        }
+        const matches=matchesFor(value), exact=matches.filter(x=>x.exact);
+        if (exact.length===1) {chooseMatch(exact[0]); return;}
+        showMessage(matches.length?'近い語が見つかりました。候補を選ぶか、追加先を指定してください。':'新しい語です。追加先を選んでください。');
+      });
+      const categoryGroup=document.getElementById('categoryGroup');
+      for (const [id,label] of groups) {const option=document.createElement('option'); option.value=id; option.textContent=label; categoryGroup.append(option);}
+      categoryGroup.value=data.activeGroup==='all'?'feeling':data.activeGroup;
+      document.getElementById('categoryForm').addEventListener('submit',event=>{
+        event.preventDefault(); const input=document.getElementById('categoryName'), name=input.value.trim(); if (!name) return;
+        if (data.sections.some(s=>s.name===name) || name==='ギャップ' || name==='自由記述') { showMessage('同じ項目名は追加できません。'); return; }
+        const section={id:'custom-'+Date.now()+'-'+Math.random().toString(36).slice(2),name,group:categoryGroup.value,items:[],custom:true};
+        data.sections.push(section); data.activeGroup=section.group; input.value='';
+        renderTargetOptions(); quickTarget.value=section.id; document.getElementById('quickSubmit').textContent='追加して採用';
+        renderTabs(); renderSections(); save(); showMessage('「'+name+'」を追加しました。上の入力欄から語を入れられます。'); quickInput.focus();
+      });
+      document.getElementById('gapText').value=data.gapText;
+      document.getElementById('gapText').addEventListener('input',event=>{data.gapText=event.target.value; if (data.gapText && data.gapMode!=='text') {data.gapMode='text'; renderModes();} save();});
+      document.getElementById('gapCandidate').checked=data.gapCandidate;
+      document.getElementById('gapCandidate').addEventListener('change',event=>{data.gapCandidate=event.target.checked; save();});
+      document.getElementById('generalNote').value=data.note;
+      document.getElementById('generalNote').addEventListener('input',event=>{data.note=event.target.value; save();});
+      if (Object.values(data.fields).some(value=>String(value).trim())) document.querySelector('details[aria-labelledby="contextTitle"]').open=true;
+      if (data.gapMode || data.gapText) document.querySelector('details[aria-labelledby="gapTitle"]').open=true;
+      if (data.note.trim()) document.querySelector('details[aria-labelledby="notesTitle"]').open=true;
+      async function copyText(value) {
+        try { await navigator.clipboard.writeText(value); return true; }
+        catch {
+          const helper=document.createElement('textarea'); helper.value=value; helper.style.position='fixed'; helper.style.opacity='0'; document.body.append(helper); helper.select();
+          const copied=document.execCommand('copy'); helper.remove(); return copied;
+        }
+      }
+      for (const id of ['copyButton','mobileCopyButton']) document.getElementById(id).addEventListener('click',async()=>{
+        const copied=await copyText(memoText());
+        showMessage(copied?'文章をコピーしました。':'コピーできませんでした。右の文章を選んでコピーしてください。');
+        if (id==='mobileCopyButton') {
+          const button=document.getElementById(id);
+          button.textContent=copied?'コピーしました':'コピーできませんでした';
+          setTimeout(()=>{button.textContent='文章をコピー';},2400);
+        }
+      });
+      document.getElementById('transferCopy').addEventListener('click',async()=>{
+        showMessage(await copyText(JSON.stringify(data))?'入力データをコピーしました。Webアプリ側に貼り付けてください。':'入力データをコピーできませんでした。');
+      });
+      document.getElementById('transferLoad').addEventListener('click',()=>{
+        const input=document.getElementById('transferInput').value;
+        if (input.length>1000000) { showMessage('入力データが大きすぎます。'); return; }
+        let imported;
+        try { imported=JSON.parse(input); } catch { showMessage('引き継ぎデータを読み取れませんでした。'); return; }
+        if (!imported || !Array.isArray(imported.sections) || !imported.fields || typeof imported.fields!=='object') {
+          showMessage('テーマ印象メモの入力データではありません。'); return;
+        }
+        if (!confirm('この画面の入力を、貼り付けたデータで置き換えますか？')) return;
+        try { localStorage.setItem(STORAGE_KEY,JSON.stringify(imported)); location.reload(); }
+        catch { showMessage('入力データを保存できませんでした。'); }
+      });
+      document.getElementById('resetButton').addEventListener('click',()=>{
+        if (!confirm('入力と追加した項目をすべて消去しますか？')) return;
+        data=blank(); document.querySelectorAll('[data-field]').forEach(el=>el.value='');
+        quickInput.value=''; quickTarget.value=''; quickCandidate.checked=false; document.getElementById('quickSubmit').textContent='採用する';
+        document.getElementById('gapText').value=''; document.getElementById('gapCandidate').checked=false; document.getElementById('generalNote').value='';
+        categoryGroup.value='feeling'; document.querySelectorAll('details.panel').forEach(el=>el.open=false);
+        renderTargetOptions(); renderTabs(); renderSections(); renderMatches(); renderModes(); save(); showMessage('入力を消去しました。');
+      });
+      document.getElementById('pngButton').addEventListener('click',async()=>{
+        if (!window.showSaveFilePicker) { messageEl.textContent='このブラウザではPNG保存に対応していません。スクリーンショットをご利用ください。'; return; }
+        const text=memoText(), canvas=document.createElement('canvas'), ctx=canvas.getContext('2d');
+        const width=1080, margin=70, lineHeight=41, font='25px -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif';
+        ctx.font=font;
+        const rows=[];
+        for (const source of text.split('\n')) {
+          let row='';
+          for (const char of source) {
+            if (ctx.measureText(row+char).width > width-margin*2 && row) { rows.push(row); row=char; }
+            else row+=char;
+          }
+          rows.push(row);
+        }
+        canvas.width=width; canvas.height=Math.max(280,margin*2+rows.length*lineHeight);
+        ctx.fillStyle='#ffffff'; ctx.fillRect(0,0,canvas.width,canvas.height);
+        ctx.fillStyle='#292932'; ctx.font=font; ctx.textBaseline='top';
+        rows.forEach((row,i)=>ctx.fillText(row,margin,margin+i*lineHeight));
+        const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));
+        if (!blob) { messageEl.textContent='PNGを作成できませんでした。'; return; }
+        try {
+          const handle=await window.showSaveFilePicker({suggestedName:'テーマ印象メモ.png',types:[{description:'PNG画像',accept:{'image/png':['.png']}}]});
+          const writable=await handle.createWritable(); await writable.write(blob); await writable.close();
+          messageEl.textContent='PNGを保存しました。';
+        } catch (error) { if (error?.name!=='AbortError') messageEl.textContent='PNGを保存できませんでした。'; }
+      });
+      renderTargetOptions(); renderTabs(); renderSections(); renderModes(); save();
+    })();
+  </script>
+</body>
+</html>
