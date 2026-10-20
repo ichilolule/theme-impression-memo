@@ -23,7 +23,7 @@
     .save-status { white-space:nowrap; padding-top:6px; }
     .grid { display:grid; grid-template-columns:minmax(0,1fr) minmax(290px,340px); gap:16px; align-items:start; }
     .panel { background:var(--paper); border:1px solid var(--line); border-radius:14px; padding:17px; box-shadow:0 4px 20px #34234c0b; }
-    .stack { display:grid; gap:12px; }
+    .stack { display:grid; grid-template-columns:minmax(0,1fr); gap:12px; }
     .fields { display:grid; gap:12px; }
     .field-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
     label { display:block; font-weight:650; font-size:.9rem; }
@@ -89,7 +89,7 @@
     .transfer textarea { min-height:65px; font-size:.78rem; }
     .transfer .small-btn { margin-top:7px; }
     .mobile-action { display:none; }
-    @media(max-width:880px) { .grid { grid-template-columns:1fr; } .sticky { position:static; } .wrap { padding:14px 10px 40px; } header { display:block; } .save-status { padding-top:5px; } }
+    @media(max-width:880px) { .grid { grid-template-columns:minmax(0,1fr); } .grid > *,.panel { min-width:0; } .sticky { position:static; } .wrap { padding:14px 10px 40px; } header { display:block; } .save-status { padding-top:5px; } }
     @media(max-width:880px) { .wrap { padding-bottom:105px; } .mobile-action { display:block; position:fixed; left:0; right:0; bottom:0; z-index:5; padding:10px max(12px, env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left)); background:#fff; border-top:1px solid var(--line); box-shadow:0 -4px 16px #34234c14; } .mobile-action .action { width:100%; } body:has(input:focus,textarea:focus) .mobile-action { display:none; } }
     @media(max-width:560px) { .field-row { grid-template-columns:1fr; } .quick-form { grid-template-columns:1fr auto; } .quick-check { grid-column:1 / -1; min-height:25px; } .choice-section { grid-template-columns:1fr; gap:4px; } .section-head { min-height:0; } }
     @media print { body { background:white; } .wrap { max-width:none; padding:0; } header,.editor,.actions,.message,.hint,.foot,.mobile-action { display:none !important; } .grid { display:block; } .panel { border:0; box-shadow:none; padding:0; } .sticky { position:static; } .preview { border:0; padding:0; max-height:none; overflow:visible; } }
