@@ -56,6 +56,8 @@
     .quick-target { display:flex; align-items:center; flex-wrap:wrap; gap:7px; margin-top:8px; }
     select { font:inherit; color:var(--ink); border:1px solid #c9c5d2; border-radius:9px; background:#fff; padding:8px 10px; max-width:100%; }
     .quick-target select { min-width:230px; }
+    .quick-tags { display:flex; flex-wrap:wrap; gap:5px; margin-top:9px; }
+    .quick-tags .chip-wrap { gap:2px; }
     .matches { display:flex; flex-wrap:wrap; gap:5px; margin-top:9px; }
     .match { border:1px solid var(--line); background:#faf8ff; border-radius:8px; padding:5px 9px; text-align:left; font-size:.84rem; }
     .match strong { display:block; line-height:1.2; }
@@ -91,6 +93,12 @@
     .transfer .hint { margin:8px 0; }
     .transfer textarea { min-height:65px; font-size:.78rem; }
     .transfer .small-btn { margin-top:7px; }
+    .gpt-import input[type="file"] { display:block; width:100%; margin:5px 0 10px; font-weight:400; }
+    .gpt-import textarea { min-height:115px; }
+    .gpt-import .hint { margin:0 0 10px; }
+    .gpt-import details { margin-top:12px; }
+    .gpt-import details > summary { cursor:pointer; color:var(--accent); font-weight:650; }
+    .gpt-import pre { white-space:pre-wrap; overflow-wrap:anywhere; max-height:300px; overflow:auto; background:#fcfbff; border:1px solid var(--line); border-radius:9px; padding:10px; font-size:.78rem; }
     .mobile-action { display:none; }
     @media(max-width:880px) { .grid { grid-template-columns:minmax(0,1fr); } .grid > *,.panel { min-width:0; } .sticky { position:static; } .wrap { padding:14px 10px 40px; } header { display:block; } .save-status { padding-top:5px; } }
     @media(max-width:880px) { .wrap { padding-bottom:105px; } .mobile-action { display:block; position:fixed; left:0; right:0; bottom:0; z-index:5; padding:10px max(12px, env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left)); background:#fff; border-top:1px solid var(--line); box-shadow:0 -4px 16px #34234c14; } .mobile-action .action { width:100%; } body:has(input:focus,textarea:focus) .mobile-action { display:none; } }
@@ -118,15 +126,52 @@
         <section class="panel" aria-labelledby="quickTitle">
           <h2 id="quickTitle">決まっている語から選ぶ</h2>
           <form id="quickForm" class="quick-form">
-            <input id="quickInput" type="text" maxlength="120" autocomplete="off" placeholder="例：夜。既存の語ならそのまま選択" aria-label="すぐ選ぶ印象語">
+            <input id="quickInput" type="text" maxlength="120" autocomplete="off" placeholder="例：夜。同じ語も何度でも登録できます" aria-label="すぐ選ぶ印象語">
             <label class="quick-check"><input id="quickCandidate" type="checkbox">候補「？」</label>
-            <button id="quickSubmit" class="action primary" type="submit">採用する</button>
+            <button id="quickSubmit" class="action primary" type="submit">登録する</button>
           </form>
+          <p class="hint">入力して登録すると、既存の語でも新しい語でも印象タグに追加します。同じ語を複数回登録できます。</p>
+          <div id="quickTags" class="quick-tags" aria-label="登録した印象タグ"></div>
           <div id="quickMatches" class="matches" aria-live="polite"></div>
-          <div class="quick-target"><label for="quickTarget">新しい語・別の項目への追加先</label><select id="quickTarget"><option value="">追加先を選ぶ</option></select></div>
+          <details class="add-category"><summary>印象項目の候補語にも追加する</summary><div class="quick-target"><label for="quickTarget">追加先（任意）</label><select id="quickTarget"><option value="">印象タグだけに登録</option></select></div><p class="hint">追加先を指定して登録すると、その項目の候補語として使えます。</p></details>
           <p id="quickMessage" class="message" role="status"></p>
           <details class="add-category"><summary>新しい印象項目を作る</summary><form id="categoryForm" class="category-form"><input id="categoryName" type="text" maxlength="50" placeholder="項目名" aria-label="新しい印象項目の名前"><select id="categoryGroup" aria-label="新しい項目の大分類"></select><button class="small-btn" type="submit">項目を追加</button></form></details>
         </section>
+        <details class="panel gpt-import" aria-labelledby="importTitle">
+          <summary id="importTitle">Web版GPTのまとめを取り込む</summary>
+          <p class="hint">指定形式のJSONを含むMDを読み込みます。内容を確認してから、空欄と印象タグへ追加します。</p>
+          <label>MD・JSONファイルを選ぶ<input id="gptFile" type="file" accept=".md,.markdown,.txt,.json,text/markdown,text/plain,application/json"></label>
+          <label>またはMD本文・JSONを貼り付け<textarea id="gptInput" placeholder="Web版GPTが作ったMD本文またはJSONを貼り付け"></textarea></label>
+          <button id="gptImport" type="button" class="small-btn">内容を確認して取り込む</button>
+          <p id="gptMessage" class="message" role="status"></p>
+          <details><summary>Web版GPTへの依頼文</summary>
+            <p class="hint">この文と依頼メールのやりとりをWeb版GPTへ渡してください。</p>
+            <pre id="gptPrompt">以下の依頼メールのやりとりを読み、イラスト制作の初動に必要な情報を整理してください。推測で確定事項を作らず、不明な欄は空文字にしてください。印象の候補は candidate、明示的に決まった印象は adopted にしてください。メール本文をそのまま転載せず、要点だけ残してください。
+
+返答はMarkdownで、次の形式のJSONコードブロックを必ず1つ含めてください。JSONのキー名と型を変えず、JSONとして有効な形で出力してください。「誰に」は絵の想定閲覧者、「何を」は伝えたい内容、「どう思われたいか」は見た人に残したい印象です。noteには依頼内容の要点、制作条件、未確定事項を簡潔にまとめてください。印象タグは {"text":"透明感","state":"candidate"} の形で配列に入れ、不要なら空配列にしてください。
+
+```json
+{
+  "format": "theme-impression-memo-import",
+  "version": 1,
+  "fields": {
+    "題材": "",
+    "テーマ": "",
+    "誰に": "",
+    "何を": "",
+    "どう思われたいか": "",
+    "確定条件": "",
+    "最終成果物の形": ""
+  },
+  "impressionTags": [],
+  "note": ""
+}
+```
+
+例の「透明感」は実際の依頼に根拠がない限り出力しないでください。メール上で食い違う情報は、勝手に決めず note に未確定事項として記してください。</pre>
+            <button id="gptPromptCopy" type="button" class="small-btn">依頼文をコピー</button>
+          </details>
+        </details>
         <section class="panel" aria-labelledby="impressionsTitle">
           <h2 id="impressionsTitle">印象を選ぶ</h2>
           <p class="legend"><span><strong>1回</strong> 採用 ✓</span><span><strong>2回</strong> 候補 ？</span><span><strong>3回</strong> 未選択</span><span>同じ行で複数選べます</span></p>
@@ -232,7 +277,7 @@
         axis('extra-composition-focus','主役にする魅力','composition',['顔','表情','仕草','衣装','関係性','小物','空間','色','光'])
       ];
       const modes = [['','未指定'],['text','自由記述'],['idea','案が欲しい'],['none','今回は入れない'],['undecided','未定']];
-      const blank = () => ({fields:{},sections:defaults.map(s=>({...s,items:s.items.map(item=>({...item}))})),activeGroup:'feeling',gapMode:'',gapText:'',gapCandidate:false,note:''});
+      const blank = () => ({fields:{},sections:defaults.map(s=>({...s,items:s.items.map(item=>({...item}))})),quickTags:[],activeGroup:'feeling',gapMode:'',gapText:'',gapCandidate:false,note:''});
       const parseSaved = () => {
         try {
           const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
@@ -253,6 +298,7 @@
             if (fresh.sections.some(s=>s.id===extra.id)) continue;
             fresh.sections.push({id:String(extra.id),name:extra.name,group:groups.some(g=>g[0]===extra.group)?extra.group:'feeling',custom:true,items:extra.items.filter(x=>x && typeof x.text==='string' && x.text.trim()).map(x=>({text:x.text,state:validState(x.state),custom:true}))});
           }
+          fresh.quickTags = Array.isArray(saved.quickTags) ? saved.quickTags.filter(x=>x && typeof x.text==='string' && x.text.trim()).map(x=>({text:x.text,state:x.state===2?2:1})) : [];
           fresh.activeGroup = saved.activeGroup==='all' || groups.some(g=>g[0]===saved.activeGroup) ? saved.activeGroup : 'feeling';
           fresh.gapMode = modes.some(m=>m[0]===saved.gapMode) ? saved.gapMode : '';
           fresh.gapText = typeof saved.gapText === 'string' ? saved.gapText : '';
@@ -281,6 +327,7 @@
           const value = display(data.fields[key]);
           if (value) lines.push(key+'：'+value);
         }
+        if (data.quickTags.length) lines.push('印象タグ：'+data.quickTags.map(item=>item.text+(item.state===2?'？':'')).join('／'));
         for (const section of data.sections) {
           const values = section.items.filter(item=>item.state).map(item=>item.text+(item.state===2?'？':''));
           if (values.length) lines.push(section.name+'：'+values.join('／'));
@@ -296,6 +343,23 @@
       const quickTarget = document.getElementById('quickTarget');
       const quickCandidate = document.getElementById('quickCandidate');
       const normalize = value => value.normalize('NFKC').toLocaleLowerCase('ja');
+      function renderQuickTags() {
+        const host=document.getElementById('quickTags'); host.replaceChildren();
+        for (const item of data.quickTags) {
+          const wrap=document.createElement('span'); wrap.className='chip-wrap';
+          const chip=document.createElement('button'); chip.type='button'; chip.className='chip';
+          const update=()=>{
+            chip.dataset.state=item.state===2?'candidate':'adopted';
+            chip.textContent=(item.state===2?'？ ':'✓ ')+item.text;
+            chip.setAttribute('aria-label',item.text+'、'+(item.state===2?'候補':'採用')+'。押すと切り替え');
+          };
+          update(); chip.addEventListener('click',()=>{item.state=item.state===1?2:1; update(); save();});
+          const remove=document.createElement('button'); remove.type='button'; remove.className='remove-option'; remove.textContent='×';
+          remove.setAttribute('aria-label','印象タグ「'+item.text+'」を削除');
+          remove.addEventListener('click',()=>{data.quickTags=data.quickTags.filter(x=>x!==item); renderQuickTags(); save();});
+          wrap.append(chip,remove); host.append(wrap);
+        }
+      }
       function matchesFor(query) {
         const needle = normalize(query.trim());
         if (!needle) return [];
@@ -319,7 +383,7 @@
       }
       function renderTargetOptions() {
         const previous=quickTarget.value; quickTarget.replaceChildren();
-        const empty=document.createElement('option'); empty.value=''; empty.textContent='追加先を選ぶ'; quickTarget.append(empty);
+        const empty=document.createElement('option'); empty.value=''; empty.textContent='印象タグだけに登録'; quickTarget.append(empty);
         for (const [id,label] of groups) {
           const optionGroup=document.createElement('optgroup'); optionGroup.label=label;
           for (const section of data.sections.filter(s=>s.group===id)) {
@@ -347,7 +411,7 @@
           feeling:'見た人に残したい印象や気持ち。',
           world:'世界・暮らし・背景。Eagleの背景印象タグは正本の実名です。',
           character:'キャラクターの魅力や関係。Eagleのキャラ印象タグは正本の実名です。',
-          color:'色名などの自由な語は、上の入力欄で追加先を選ぶと登録できます。',
+          color:'色名などの自由な語も、上の入力欄から印象タグとして登録できます。',
           composition:'テーマが決まった後、必要な行だけ選んでください。',
           all:'すべての候補を一覧できます。上部の入力欄からも直接選べます。'
         };
@@ -393,7 +457,7 @@
       }
       function chooseMatch(entry) {
         entry.item.state=quickCandidate.checked?2:1; data.activeGroup=entry.section.group;
-        quickInput.value=''; quickTarget.value=''; document.getElementById('quickSubmit').textContent='採用する';
+        quickInput.value=''; quickTarget.value=''; document.getElementById('quickSubmit').textContent='登録する';
         document.getElementById('categoryGroup').value=data.activeGroup;
         renderMatches(); renderTabs(); renderSections(); save();
         showMessage('「'+entry.item.text+'」を'+(entry.item.state===2?'候補':'採用')+'にしました（'+entry.section.name+'）。');
@@ -414,7 +478,7 @@
       });
       quickInput.addEventListener('input',()=>{quickMessageEl.textContent=''; renderMatches();});
       quickTarget.addEventListener('change',()=>{
-        document.getElementById('quickSubmit').textContent=quickTarget.value?'追加して採用':'採用する';
+        document.getElementById('quickSubmit').textContent=quickTarget.value?'追加して採用':'登録する';
       });
       document.getElementById('quickForm').addEventListener('submit',event=>{
         event.preventDefault(); const value=quickInput.value.trim(); if (!value) {quickInput.focus(); return;}
@@ -423,12 +487,12 @@
           let item=target.items.find(x=>normalize(x.text)===normalize(value));
           if (!item) {item={text:value,state:0,custom:true}; target.items.push(item);}
           chooseMatch({section:target,item});
-          document.getElementById('quickSubmit').textContent='採用する';
+          document.getElementById('quickSubmit').textContent='登録する';
           return;
         }
-        const matches=matchesFor(value), exact=matches.filter(x=>x.exact);
-        if (exact.length===1) {chooseMatch(exact[0]); return;}
-        showMessage(matches.length?'近い語が見つかりました。候補を選ぶか、追加先を指定してください。':'新しい語です。追加先を選んでください。');
+        data.quickTags.push({text:value,state:quickCandidate.checked?2:1});
+        quickInput.value=''; renderQuickTags(); renderMatches(); save();
+        showMessage('「'+value+'」を印象タグに登録しました。'); quickInput.focus();
       });
       const categoryGroup=document.getElementById('categoryGroup');
       for (const [id,label] of groups) {const option=document.createElement('option'); option.value=id; option.textContent=label; categoryGroup.append(option);}
@@ -447,6 +511,64 @@
       document.getElementById('gapCandidate').addEventListener('change',event=>{data.gapCandidate=event.target.checked; save();});
       document.getElementById('generalNote').value=data.note;
       document.getElementById('generalNote').addEventListener('input',event=>{data.note=event.target.value; save();});
+      const gptInput=document.getElementById('gptInput');
+      const gptMessage=document.getElementById('gptMessage');
+      const importFields=['題材','テーマ','誰に','何を','どう思われたいか','確定条件','最終成果物の形'];
+      function parseGptSummary(source) {
+        if (source.length>250000) throw new Error('長さ');
+        const block=source.match(/```json\s*([\s\S]*?)\s*```/i);
+        const value=JSON.parse(block?block[1]:source);
+        if (!value || value.format!=='theme-impression-memo-import' || value.version!==1 ||
+            !value.fields || typeof value.fields!=='object' || Array.isArray(value.fields) ||
+            !Array.isArray(value.impressionTags) || typeof value.note!=='string') throw new Error('形式');
+        const fields={};
+        for (const key of importFields) {
+          const text=value.fields[key];
+          if (text===undefined || text===null || text==='') continue;
+          if (typeof text!=='string' || text.length>2000) throw new Error('項目');
+          fields[key]=text.replace(/\s+/g,' ').trim();
+        }
+        if (value.impressionTags.length>100 || value.note.length>20000) throw new Error('長さ');
+        const tags=value.impressionTags.map(item=>{
+          if (!item || typeof item.text!=='string' || !item.text.trim() || item.text.length>120 ||
+              !['adopted','candidate'].includes(item.state)) throw new Error('印象タグ');
+          return {text:item.text.replace(/\s+/g,' ').trim(),state:item.state==='candidate'?2:1};
+        });
+        return {fields,tags,note:value.note.trim()};
+      }
+      document.getElementById('gptFile').addEventListener('change',async event=>{
+        const file=event.target.files[0]; if (!file) return;
+        if (file.size>250000) { gptMessage.textContent='ファイルが大きすぎます（上限250KB）。'; return; }
+        try { gptInput.value=await file.text(); gptMessage.textContent='ファイルを読み込みました。内容を確認して取り込んでください。'; }
+        catch { gptMessage.textContent='ファイルを読み込めませんでした。'; }
+      });
+      document.getElementById('gptImport').addEventListener('click',()=>{
+        let imported;
+        try { imported=parseGptSummary(gptInput.value.trim()); }
+        catch { gptMessage.textContent='取り込み形式を読み取れませんでした。Web版GPTへの依頼文にあるJSON形式を確認してください。'; return; }
+        const fields=Object.entries(imported.fields).filter(([key])=>!display(data.fields[key]));
+        const skipped=Object.keys(imported.fields).filter(key=>display(data.fields[key]));
+        const addNote=imported.note && !data.note.includes(imported.note);
+        if (!fields.length && !imported.tags.length && !addNote) { gptMessage.textContent='追加する内容はありません。'; return; }
+        const excerpt=(value,max=180)=>value.length>max?value.slice(0,max)+'…（全'+value.length+'文字）':value;
+        const summary=[
+          ...fields.map(([key,value])=>key+'：'+excerpt(value)),
+          ...(imported.tags.length?['印象タグ '+imported.tags.length+'件：'+excerpt(imported.tags.map(item=>item.text+(item.state===2?'？':'')).join('／'))]:[]),
+          ...(addNote?['自由記述：'+excerpt(imported.note)]:[]),
+          ...(skipped.length?['入力済みのため維持：'+skipped.join('、')]:[])
+        ].join('\n');
+        if (!confirm('次の内容を追加します。入力済みの欄は維持します。\n\n'+summary+'\n\n取り込みますか？')) return;
+        for (const [key,value] of fields) {
+          data.fields[key]=value;
+          document.querySelectorAll('[data-field]').forEach(el=>{if(el.dataset.field===key) el.value=value;});
+        }
+        data.quickTags.push(...imported.tags);
+        if (addNote) {data.note+=(data.note.trim()?'\n\n':'')+imported.note; document.getElementById('generalNote').value=data.note;}
+        if (fields.length) document.querySelector('details[aria-labelledby="contextTitle"]').open=true;
+        if (addNote) document.querySelector('details[aria-labelledby="notesTitle"]').open=true;
+        renderQuickTags(); save();
+        gptMessage.textContent='取り込みました。入力済みの欄と印象選択は維持しています。';
+      });
       if (Object.values(data.fields).some(value=>String(value).trim())) document.querySelector('details[aria-labelledby="contextTitle"]').open=true;
       if (data.gapMode || data.gapText) document.querySelector('details[aria-labelledby="gapTitle"]').open=true;
       if (data.note.trim()) document.querySelector('details[aria-labelledby="notesTitle"]').open=true;
@@ -457,6 +579,10 @@
           const copied=document.execCommand('copy'); helper.remove(); return copied;
         }
       }
+      document.getElementById('gptPromptCopy').addEventListener('click',async()=>{
+        gptMessage.textContent=await copyText(document.getElementById('gptPrompt').textContent)
+          ?'Web版GPTへの依頼文をコピーしました。メールのやりとりと一緒に送ってください。':'依頼文をコピーできませんでした。';
+      });
       for (const id of ['copyButton','mobileCopyButton']) document.getElementById(id).addEventListener('click',async()=>{
         const copied=await copyText(memoText());
         showMessage(copied?'文章をコピーしました。':'コピーできませんでした。右の文章を選んでコピーしてください。');
@@ -484,10 +610,10 @@
       document.getElementById('resetButton').addEventListener('click',()=>{
         if (!confirm('入力と追加した項目をすべて消去しますか？')) return;
         data=blank(); document.querySelectorAll('[data-field]').forEach(el=>el.value='');
-        quickInput.value=''; quickTarget.value=''; quickCandidate.checked=false; document.getElementById('quickSubmit').textContent='採用する';
+        quickInput.value=''; quickTarget.value=''; quickCandidate.checked=false; document.getElementById('quickSubmit').textContent='登録する';
         document.getElementById('gapText').value=''; document.getElementById('gapCandidate').checked=false; document.getElementById('generalNote').value='';
         categoryGroup.value='feeling'; document.querySelectorAll('details.panel').forEach(el=>el.open=false);
-        renderTargetOptions(); renderTabs(); renderSections(); renderMatches(); renderModes(); save(); showMessage('入力を消去しました。');
+        renderTargetOptions(); renderQuickTags(); renderTabs(); renderSections(); renderMatches(); renderModes(); save(); showMessage('入力を消去しました。');
       });
       document.getElementById('pngButton').addEventListener('click',async()=>{
         if (!window.showSaveFilePicker) { messageEl.textContent='このブラウザではPNG保存に対応していません。スクリーンショットをご利用ください。'; return; }
@@ -515,7 +641,7 @@
           messageEl.textContent='PNGを保存しました。';
         } catch (error) { if (error?.name!=='AbortError') messageEl.textContent='PNGを保存できませんでした。'; }
       });
-      renderTargetOptions(); renderTabs(); renderSections(); renderModes(); save();
+      renderTargetOptions(); renderQuickTags(); renderTabs(); renderSections(); renderModes(); save();
     })();
   </script>
 </body>
