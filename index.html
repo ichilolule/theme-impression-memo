@@ -53,9 +53,7 @@
     .quick-form input[type="text"] { margin:0; }
     .quick-check { white-space:nowrap; font-weight:400; font-size:.84rem; display:flex; gap:5px; align-items:center; min-height:42px; }
     .quick-check input { margin:0; }
-    .quick-target { display:flex; align-items:center; flex-wrap:wrap; gap:7px; margin-top:8px; }
     select { font:inherit; color:var(--ink); border:1px solid #c9c5d2; border-radius:9px; background:#fff; padding:8px 10px; max-width:100%; }
-    .quick-target select { min-width:230px; }
     .quick-tags { display:flex; flex-wrap:wrap; gap:5px; margin-top:9px; }
     .quick-tags .chip-wrap { gap:2px; }
     .matches { display:flex; flex-wrap:wrap; gap:5px; margin-top:9px; }
@@ -68,10 +66,6 @@
     .tab-count { font-size:.75rem; margin-left:3px; opacity:.8; }
     details.panel > summary { cursor:pointer; font-weight:700; font-size:1.05rem; }
     details.panel[open] > summary { margin-bottom:12px; }
-    details.add-category { margin-top:8px; border-top:1px solid var(--line); padding-top:8px; }
-    details.add-category > summary { cursor:pointer; font-size:.84rem; color:var(--accent); }
-    .category-form { display:flex; flex-wrap:wrap; gap:7px; margin-top:8px; }
-    .category-form input { max-width:260px; margin:0; }
     .gap-modes { display:flex; flex-wrap:wrap; gap:7px; }
     .gap-modes label { font-weight:400; font-size:.88rem; }
     .gap-modes input { position:absolute; opacity:0; }
@@ -88,17 +82,26 @@
     .message { min-height:1.6em; color:#345f3b; font-size:.88rem; }
     .sticky { position:sticky; top:16px; }
     .foot { display:flex; justify-content:flex-end; margin-top:12px; }
-    .transfer { margin-top:12px; border-top:1px solid var(--line); padding-top:10px; }
-    .transfer > summary { cursor:pointer; color:var(--accent); font-size:.87rem; font-weight:650; }
-    .transfer .hint { margin:8px 0; }
-    .transfer textarea { min-height:65px; font-size:.78rem; }
-    .transfer .small-btn { margin-top:7px; }
-    .gpt-import input[type="file"] { display:block; width:100%; margin:5px 0 10px; font-weight:400; }
-    .gpt-import textarea { min-height:115px; }
-    .gpt-import .hint { margin:0 0 10px; }
-    .gpt-import details { margin-top:12px; }
-    .gpt-import details > summary { cursor:pointer; color:var(--accent); font-weight:650; }
-    .gpt-import pre { white-space:pre-wrap; overflow-wrap:anywhere; max-height:300px; overflow:auto; background:#fcfbff; border:1px solid var(--line); border-radius:9px; padding:10px; font-size:.78rem; }
+    .header-actions { display:flex; flex-wrap:wrap; gap:7px; align-items:center; }
+    .tool-dialog { width:min(680px,calc(100% - 24px)); max-height:calc(100dvh - 24px); border:1px solid var(--line); border-radius:14px; padding:0; color:var(--ink); background:var(--paper); box-shadow:0 15px 55px #29293240; }
+    .tool-dialog::backdrop { background:#29293280; }
+    .dialog-body { padding:18px; overflow-y:auto; max-height:calc(100dvh - 24px); }
+    .dialog-head { display:flex; justify-content:space-between; gap:10px; align-items:start; margin-bottom:12px; }
+    .dialog-head h2 { margin:0; }
+    .dialog-head > button { flex:none; white-space:nowrap; }
+    .dialog-section { border-top:1px solid var(--line); padding-top:13px; margin-top:13px; }
+    .dialog-section h3 { margin-bottom:6px; }
+    .dialog-row { display:flex; flex-wrap:wrap; gap:7px; align-items:center; margin-top:8px; }
+    .dialog-row input[type="text"] { flex:1 1 180px; margin:0; }
+    .dialog-row select { flex:1 1 180px; }
+    .tool-dialog textarea { min-height:130px; }
+    .tool-dialog input[type="file"] { display:block; width:100%; margin:5px 0 10px; font-weight:400; }
+    .tool-dialog pre { white-space:pre-wrap; overflow-wrap:anywhere; max-height:250px; overflow:auto; background:#fcfbff; border:1px solid var(--line); border-radius:9px; padding:10px; font-size:.78rem; }
+    .library-list { display:grid; gap:7px; margin-top:8px; }
+    .library-entry { display:flex; align-items:center; justify-content:space-between; gap:8px; border:1px solid var(--line); border-radius:8px; padding:6px 9px; font-size:.86rem; }
+    .library-entry button { flex:none; }
+    .import-preview { white-space:pre-wrap; overflow-wrap:anywhere; background:#fcfbff; border:1px solid var(--line); border-radius:9px; padding:10px; margin-top:8px; font-size:.84rem; }
+    .import-preview[hidden] { display:none; }
     .mobile-action { display:none; }
     @media(max-width:880px) { .grid { grid-template-columns:minmax(0,1fr); } .grid > *,.panel { min-width:0; } .sticky { position:static; } .wrap { padding:14px 10px 40px; } header { display:block; } .save-status { padding-top:5px; } }
     @media(max-width:880px) { .wrap { padding-bottom:105px; } .mobile-action { display:block; position:fixed; left:0; right:0; bottom:0; z-index:5; padding:10px max(12px, env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left)); background:#fff; border-top:1px solid var(--line); box-shadow:0 -4px 16px #34234c14; } .mobile-action .action { width:100%; } body:has(input:focus,textarea:focus) .mobile-action { display:none; } }
@@ -110,7 +113,7 @@
   <div class="wrap">
     <header>
       <div><h1>テーマ印象メモ</h1><p class="sub">印象を選び、制作の手掛かりを添えて、チャットへそのままコピーできます。入力はこの端末のブラウザに保存され、サイトへ送信されません。</p></div>
-      <p id="saveStatus" class="save-status" aria-live="polite"></p>
+      <div><div class="header-actions"><button id="openIo" type="button" class="small-btn">入出力</button><button id="openSettings" type="button" class="small-btn">設定</button></div><p id="saveStatus" class="save-status" aria-live="polite"></p></div>
     </header>
     <main class="grid">
       <div class="stack editor">
@@ -133,45 +136,8 @@
           <p class="hint">入力して登録すると、既存の語でも新しい語でも印象タグに追加します。同じ語を複数回登録できます。</p>
           <div id="quickTags" class="quick-tags" aria-label="登録した印象タグ"></div>
           <div id="quickMatches" class="matches" aria-live="polite"></div>
-          <details class="add-category"><summary>印象項目の候補語にも追加する</summary><div class="quick-target"><label for="quickTarget">追加先（任意）</label><select id="quickTarget"><option value="">印象タグだけに登録</option></select></div><p class="hint">追加先を指定して登録すると、その項目の候補語として使えます。</p></details>
           <p id="quickMessage" class="message" role="status"></p>
-          <details class="add-category"><summary>新しい印象項目を作る</summary><form id="categoryForm" class="category-form"><input id="categoryName" type="text" maxlength="50" placeholder="項目名" aria-label="新しい印象項目の名前"><select id="categoryGroup" aria-label="新しい項目の大分類"></select><button class="small-btn" type="submit">項目を追加</button></form></details>
         </section>
-        <details class="panel gpt-import" aria-labelledby="importTitle">
-          <summary id="importTitle">Web版GPTのまとめを取り込む</summary>
-          <p class="hint">指定形式のJSONを含むMDを読み込みます。内容を確認してから、空欄と印象タグへ追加します。</p>
-          <label>MD・JSONファイルを選ぶ<input id="gptFile" type="file" accept=".md,.markdown,.txt,.json,text/markdown,text/plain,application/json"></label>
-          <label>またはMD本文・JSONを貼り付け<textarea id="gptInput" placeholder="Web版GPTが作ったMD本文またはJSONを貼り付け"></textarea></label>
-          <button id="gptImport" type="button" class="small-btn">内容を確認して取り込む</button>
-          <p id="gptMessage" class="message" role="status"></p>
-          <details><summary>Web版GPTへの依頼文</summary>
-            <p class="hint">この文と依頼メールのやりとりをWeb版GPTへ渡してください。</p>
-            <pre id="gptPrompt">以下の依頼メールのやりとりを読み、イラスト制作の初動に必要な情報を整理してください。推測で確定事項を作らず、不明な欄は空文字にしてください。印象の候補は candidate、明示的に決まった印象は adopted にしてください。メール本文をそのまま転載せず、要点だけ残してください。
-
-返答はMarkdownで、次の形式のJSONコードブロックを必ず1つ含めてください。JSONのキー名と型を変えず、JSONとして有効な形で出力してください。「誰に」は絵の想定閲覧者、「何を」は伝えたい内容、「どう思われたいか」は見た人に残したい印象です。noteには依頼内容の要点、制作条件、未確定事項を簡潔にまとめてください。印象タグは {"text":"透明感","state":"candidate"} の形で配列に入れ、不要なら空配列にしてください。
-
-```json
-{
-  "format": "theme-impression-memo-import",
-  "version": 1,
-  "fields": {
-    "題材": "",
-    "テーマ": "",
-    "誰に": "",
-    "何を": "",
-    "どう思われたいか": "",
-    "確定条件": "",
-    "最終成果物の形": ""
-  },
-  "impressionTags": [],
-  "note": ""
-}
-```
-
-例の「透明感」は実際の依頼に根拠がない限り出力しないでください。メール上で食い違う情報は、勝手に決めず note に未確定事項として記してください。</pre>
-            <button id="gptPromptCopy" type="button" class="small-btn">依頼文をコピー</button>
-          </details>
-        </details>
         <section class="panel" aria-labelledby="impressionsTitle">
           <h2 id="impressionsTitle">印象を選ぶ</h2>
           <p class="legend"><span><strong>1回</strong> 採用 ✓</span><span><strong>2回</strong> 候補 ？</span><span><strong>3回</strong> 未選択</span><span>同じ行で複数選べます</span></p>
@@ -197,22 +163,56 @@
         <div class="actions"><button id="copyButton" type="button" class="action primary">文章をコピー</button><button id="pngButton" type="button" class="action">PNG保存</button></div>
         <p id="message" class="message" role="status"></p>
         <p class="hint">PNGは保存先を選び、同じファイルを更新できます。対応していないブラウザではスクリーンショットを使えます。</p>
-        <details class="transfer">
-          <summary>Webアプリへ入力を引き継ぐ</summary>
-          <p class="hint">今の画面で「入力データをコピー」し、Webアプリ側の下の欄に貼り付けて読み込みます。</p>
-          <button id="transferCopy" type="button" class="small-btn">入力データをコピー</button>
-          <label>引き継ぎデータを貼り付け<textarea id="transferInput" placeholder="コピーした入力データをここへ貼り付け"></textarea></label>
-          <button id="transferLoad" type="button" class="small-btn">貼り付けたデータを読み込む</button>
-        </details>
         <div class="foot"><button id="resetButton" type="button" class="subtle">入力を消去</button></div>
       </aside>
     </main>
     <div class="mobile-action"><button id="mobileCopyButton" type="button" class="action primary">文章をコピー</button></div>
   </div>
+  <dialog id="ioDialog" class="tool-dialog" aria-labelledby="ioTitle"><div class="dialog-body">
+    <div class="dialog-head"><div><h2 id="ioTitle">入出力</h2><p class="hint">JSONは今回の制作と設定を保存します。別の端末ではファイルまたはコピーしたJSONを読み込んでください。</p></div><button type="button" class="small-btn" data-close="ioDialog">閉じる</button></div>
+    <p id="ioMessage" class="message" role="status"></p>
+    <section class="dialog-section"><h3>書き出す</h3><p class="hint">バックアップ名は「theme-impression-memo.json」です。iCloudへ置く場合は、この一つのファイルを更新してください。</p><div class="dialog-row"><button id="saveJson" type="button" class="action primary">JSON保存</button><button id="copyJson" type="button" class="small-btn">JSONをコピー</button></div></section>
+    <section class="dialog-section"><h3>読み込む</h3><label>JSONファイルを選ぶ<input id="importFile" type="file" accept=".json,.md,.markdown,.txt,application/json,text/markdown,text/plain"></label><label>またはJSONを貼り付ける<textarea id="importInput" placeholder="Web版GPTのJSON、またはアプリで保存・コピーしたJSON"></textarea></label><div class="dialog-row"><button id="checkImport" type="button" class="small-btn">内容を確認</button></div><div id="importPreview" class="import-preview" hidden></div><div id="importControls" hidden><label for="importMode">読み込み方法</label><select id="importMode"><option value="add">今回の制作へ追加（入力済みは維持）</option><option value="replace">今回の制作を置き換える（設定は維持）</option><option value="full">今回の制作と設定を復元する</option></select><div class="dialog-row"><button id="applyImport" type="button" class="action primary">この内容を読み込む</button></div></div></section>
+  </div></dialog>
+  <dialog id="settingsDialog" class="tool-dialog" aria-labelledby="settingsTitle"><div class="dialog-body">
+    <div class="dialog-head"><div><h2 id="settingsTitle">設定</h2><p class="hint">候補語と印象項目は「入力を消去」しても残ります。</p></div><button type="button" class="small-btn" data-close="settingsDialog">閉じる</button></div>
+    <p id="settingsMessage" class="message" role="status"></p>
+    <section class="dialog-section"><h3>印象項目の候補語を追加</h3><form id="libraryForm" class="dialog-row"><input id="libraryWord" type="text" maxlength="120" placeholder="追加する語" aria-label="追加する候補語"><select id="libraryTarget" aria-label="追加先の印象項目"></select><button type="submit" class="small-btn">候補語を追加</button></form></section>
+    <section class="dialog-section"><h3>新しい印象項目を作る</h3><form id="categoryForm" class="dialog-row"><input id="categoryName" type="text" maxlength="50" placeholder="項目名" aria-label="新しい印象項目の名前"><select id="categoryGroup" aria-label="新しい項目の大分類"></select><button class="small-btn" type="submit">項目を追加</button></form></section>
+    <section class="dialog-section"><h3>追加した候補語・項目</h3><div id="libraryList" class="library-list"></div></section>
+    <section class="dialog-section"><h3>Web版GPTへの依頼文</h3><p class="hint">この文と依頼メールのやりとりをWeb版GPTへ渡してください。返答のJSONは「入出力」から読み込めます。</p>
+      <pre id="gptPrompt">以下の依頼メールのやりとりを読み、イラスト制作の初動に必要な情報を整理してください。推測で確定事項を作らず、不明な欄は空文字にしてください。印象の候補は candidate、明示的に決まった印象は adopted にしてください。メール本文をそのまま転載せず、要点だけ残してください。
+
+返答は説明やMarkdownのコード囲みを付けず、次の形式の有効なJSONだけにしてください。キー名と型は変えないでください。「誰に」は絵の想定閲覧者、「何を」は伝えたい内容、「どう思われたいか」は見た人に残したい印象です。noteには依頼内容の要点、制作条件、未確定事項を簡潔にまとめてください。印象タグは {"text":"透明感","state":"candidate"} の形で配列に入れ、不要なら空配列にしてください。
+
+{
+  "format": "theme-impression-memo",
+  "version": 2,
+  "case": {
+    "fields": {
+      "題材": "",
+      "テーマ": "",
+      "誰に": "",
+      "何を": "",
+      "どう思われたいか": "",
+      "確定条件": "",
+      "最終成果物の形": ""
+    },
+    "impressionTags": [],
+    "note": ""
+  }
+}
+
+例の「透明感」は実際の依頼に根拠がない限り出力しないでください。メール上で食い違う情報は、勝手に決めず note に未確定事項として記してください。</pre><button id="gptPromptCopy" type="button" class="small-btn">依頼文をコピー</button></section>
+  </div></dialog>
   <script>
     (() => {
       'use strict';
       const STORAGE_KEY = 'theme-impression-memo-1';
+      const BACKUP_NAME = 'theme-impression-memo.json';
+      const FORMAT = 'theme-impression-memo';
+      const FORMAT_VERSION = 2;
+      const importFields = ['題材','テーマ','誰に','何を','どう思われたいか','確定条件','最終成果物の形'];
       const groups = [
         ['feeling','印象・気分'],['world','世界・背景'],['character','キャラクター'],
         ['color','色・光'],['composition','画面・構図']
@@ -278,9 +278,9 @@
       ];
       const modes = [['','未指定'],['text','自由記述'],['idea','案が欲しい'],['none','今回は入れない'],['undecided','未定']];
       const blank = () => ({fields:{},sections:defaults.map(s=>({...s,items:s.items.map(item=>({...item}))})),quickTags:[],activeGroup:'feeling',gapMode:'',gapText:'',gapCandidate:false,note:''});
-      const parseSaved = () => {
+      const blankCase = source => ({...source,fields:{},sections:source.sections.map(s=>({...s,items:s.items.map(item=>({...item,state:0}))})),quickTags:[],activeGroup:'feeling',gapMode:'',gapText:'',gapCandidate:false,note:''});
+      const normalizeSaved = saved => {
         try {
-          const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
           if (!saved || !Array.isArray(saved.sections)) return blank();
           const fresh = blank();
           fresh.fields = saved.fields && typeof saved.fields === 'object' ? saved.fields : {};
@@ -307,6 +307,10 @@
           return fresh;
         } catch { return blank(); }
       };
+      const parseSaved = () => {
+        try { return normalizeSaved(JSON.parse(localStorage.getItem(STORAGE_KEY))); }
+        catch { return blank(); }
+      };
       function validState(value) { return value === 1 || value === 2 ? value : 0; }
       let data = parseSaved();
       const sectionsEl = document.getElementById('sections');
@@ -317,9 +321,11 @@
       const display = value => String(value || '').trim();
       const showMessage = value => { messageEl.textContent=value; quickMessageEl.textContent=value; };
       function save() {
+        let stored=true;
         try { localStorage.setItem(STORAGE_KEY,JSON.stringify(data)); saveStatus.textContent='このブラウザに自動保存'; }
-        catch { saveStatus.textContent='自動保存できません。文章をコピーして残してください'; }
+        catch { stored=false; saveStatus.textContent='自動保存できません。JSONを保存して残してください'; }
         previewEl.textContent = memoText();
+        return stored;
       }
       function memoText() {
         const lines = ['【テーマ印象メモ】'];
@@ -340,7 +346,6 @@
         return lines.join('\n');
       }
       const quickInput = document.getElementById('quickInput');
-      const quickTarget = document.getElementById('quickTarget');
       const quickCandidate = document.getElementById('quickCandidate');
       const normalize = value => value.normalize('NFKC').toLocaleLowerCase('ja');
       function renderQuickTags() {
@@ -381,17 +386,50 @@
           button.append(strong,small); button.addEventListener('click',()=>chooseMatch(entry)); host.append(button);
         }
       }
-      function renderTargetOptions() {
-        const previous=quickTarget.value; quickTarget.replaceChildren();
-        const empty=document.createElement('option'); empty.value=''; empty.textContent='印象タグだけに登録'; quickTarget.append(empty);
+      function renderLibraryTargetOptions() {
+        const target=document.getElementById('libraryTarget');
+        const previous=target.value; target.replaceChildren();
         for (const [id,label] of groups) {
           const optionGroup=document.createElement('optgroup'); optionGroup.label=label;
           for (const section of data.sections.filter(s=>s.group===id)) {
             const option=document.createElement('option'); option.value=section.id; option.textContent=section.name; optionGroup.append(option);
           }
-          quickTarget.append(optionGroup);
+          target.append(optionGroup);
         }
-        quickTarget.value=data.sections.some(s=>s.id===previous)?previous:'';
+        target.value=data.sections.some(s=>s.id===previous)?previous:data.sections[0]?.id || '';
+      }
+      function renderLibraryList() {
+        const host=document.getElementById('libraryList'); host.replaceChildren();
+        let count=0;
+        for (const section of data.sections) {
+          if (section.custom) {
+            count++;
+            const row=document.createElement('div'); row.className='library-entry';
+            const label=document.createElement('span'); label.textContent='印象項目：'+section.name;
+            const remove=document.createElement('button'); remove.type='button'; remove.className='delete'; remove.textContent='削除';
+            remove.setAttribute('aria-label','印象項目「'+section.name+'」を削除');
+            remove.addEventListener('click',()=>{
+              if (!confirm('「'+section.name+'」と、その候補語・今回の選択を削除しますか？')) return;
+              data.sections=data.sections.filter(s=>s!==section);
+              renderLibraryTargetOptions(); renderLibraryList(); renderSections(); renderTabs(); renderMatches(); save();
+            });
+            row.append(label,remove); host.append(row);
+          }
+          for (const item of section.items.filter(item=>item.custom)) {
+            count++;
+            const row=document.createElement('div'); row.className='library-entry';
+            const label=document.createElement('span'); label.textContent=section.name+'：'+item.text;
+            const remove=document.createElement('button'); remove.type='button'; remove.className='delete'; remove.textContent='削除';
+            remove.setAttribute('aria-label',section.name+'の候補語「'+item.text+'」を削除');
+            remove.addEventListener('click',()=>{
+              if (!confirm('候補語「'+item.text+'」と、今回の選択を削除しますか？')) return;
+              section.items=section.items.filter(x=>x!==item);
+              renderLibraryList(); renderSections(); renderTabs(); renderMatches(); save();
+            });
+            row.append(label,remove); host.append(row);
+          }
+        }
+        if (!count) { const empty=document.createElement('p'); empty.className='hint'; empty.textContent='追加した候補語・項目はまだありません。'; host.append(empty); }
       }
       function renderTabs() {
         const host=document.getElementById('groupTabs'); host.replaceChildren();
@@ -420,14 +458,6 @@
           const block=document.createElement('section'); block.className='choice-section';
           const head=document.createElement('div'); head.className='section-head';
           const title=document.createElement('h3'); title.textContent=section.name; head.append(title);
-          if (section.custom) {
-            const remove=document.createElement('button'); remove.className='delete'; remove.type='button'; remove.textContent='×';
-            remove.setAttribute('aria-label','項目「'+section.name+'」を削除');
-            remove.addEventListener('click',()=>{
-              if (!confirm('「'+section.name+'」を削除しますか？')) return;
-              data.sections=data.sections.filter(s=>s!==section); renderSections(); renderTabs(); renderTargetOptions(); renderMatches(); save();
-            }); head.append(remove);
-          }
           block.append(head);
           const chips=document.createElement('div'); chips.className='chips';
           if (!section.items.length) {
@@ -444,12 +474,6 @@
             updateChip();
             chip.addEventListener('click',()=>{item.state=(item.state+1)%3; updateChip(); renderTabs(); renderMatches(); save();});
             wrap.append(chip);
-            if (item.custom) {
-              const remove=document.createElement('button'); remove.type='button'; remove.className='remove-option'; remove.textContent='×';
-              remove.setAttribute('aria-label',section.name+'の「'+item.text+'」を削除');
-              remove.addEventListener('click',()=>{section.items=section.items.filter(x=>x!==item); renderSections(); renderTabs(); renderMatches(); save();});
-              wrap.append(remove);
-            }
             chips.append(wrap);
           }
           block.append(chips); sectionsEl.append(block);
@@ -457,7 +481,7 @@
       }
       function chooseMatch(entry) {
         entry.item.state=quickCandidate.checked?2:1; data.activeGroup=entry.section.group;
-        quickInput.value=''; quickTarget.value=''; document.getElementById('quickSubmit').textContent='登録する';
+        quickInput.value='';
         document.getElementById('categoryGroup').value=data.activeGroup;
         renderMatches(); renderTabs(); renderSections(); save();
         showMessage('「'+entry.item.text+'」を'+(entry.item.state===2?'候補':'採用')+'にしました（'+entry.section.name+'）。');
@@ -477,19 +501,8 @@
         el.addEventListener('input',()=>{data.fields[el.dataset.field]=el.value; save();});
       });
       quickInput.addEventListener('input',()=>{quickMessageEl.textContent=''; renderMatches();});
-      quickTarget.addEventListener('change',()=>{
-        document.getElementById('quickSubmit').textContent=quickTarget.value?'追加して採用':'登録する';
-      });
       document.getElementById('quickForm').addEventListener('submit',event=>{
         event.preventDefault(); const value=quickInput.value.trim(); if (!value) {quickInput.focus(); return;}
-        const target=data.sections.find(s=>s.id===quickTarget.value);
-        if (target) {
-          let item=target.items.find(x=>normalize(x.text)===normalize(value));
-          if (!item) {item={text:value,state:0,custom:true}; target.items.push(item);}
-          chooseMatch({section:target,item});
-          document.getElementById('quickSubmit').textContent='登録する';
-          return;
-        }
         data.quickTags.push({text:value,state:quickCandidate.checked?2:1});
         quickInput.value=''; renderQuickTags(); renderMatches(); save();
         showMessage('「'+value+'」を印象タグに登録しました。'); quickInput.focus();
@@ -497,13 +510,26 @@
       const categoryGroup=document.getElementById('categoryGroup');
       for (const [id,label] of groups) {const option=document.createElement('option'); option.value=id; option.textContent=label; categoryGroup.append(option);}
       categoryGroup.value=data.activeGroup==='all'?'feeling':data.activeGroup;
+      document.getElementById('libraryForm').addEventListener('submit',event=>{
+        event.preventDefault();
+        const input=document.getElementById('libraryWord'), value=input.value.trim();
+        const section=data.sections.find(s=>s.id===document.getElementById('libraryTarget').value);
+        if (!value || !section) return;
+        if (section.items.some(item=>normalize(item.text)===normalize(value))) {
+          document.getElementById('settingsMessage').textContent='この項目には同じ候補語があります。'; return;
+        }
+        section.items.push({text:value,state:0,custom:true}); input.value='';
+        renderLibraryList(); renderSections(); renderMatches(); save();
+        document.getElementById('settingsMessage').textContent='「'+value+'」を'+section.name+'へ追加しました。'; input.focus();
+      });
       document.getElementById('categoryForm').addEventListener('submit',event=>{
         event.preventDefault(); const input=document.getElementById('categoryName'), name=input.value.trim(); if (!name) return;
-        if (data.sections.some(s=>s.name===name) || name==='ギャップ' || name==='自由記述') { showMessage('同じ項目名は追加できません。'); return; }
+        if (data.sections.some(s=>s.name===name) || name==='ギャップ' || name==='自由記述') { document.getElementById('settingsMessage').textContent='同じ項目名は追加できません。'; return; }
         const section={id:'custom-'+Date.now()+'-'+Math.random().toString(36).slice(2),name,group:categoryGroup.value,items:[],custom:true};
         data.sections.push(section); data.activeGroup=section.group; input.value='';
-        renderTargetOptions(); quickTarget.value=section.id; document.getElementById('quickSubmit').textContent='追加して採用';
-        renderTabs(); renderSections(); save(); showMessage('「'+name+'」を追加しました。上の入力欄から語を入れられます。'); quickInput.focus();
+        renderLibraryTargetOptions(); document.getElementById('libraryTarget').value=section.id;
+        renderLibraryList(); renderTabs(); renderSections(); save();
+        document.getElementById('settingsMessage').textContent='「'+name+'」を追加しました。上の欄から候補語を入れられます。'; document.getElementById('libraryWord').focus();
       });
       document.getElementById('gapText').value=data.gapText;
       document.getElementById('gapText').addEventListener('input',event=>{data.gapText=event.target.value; if (data.gapText && data.gapMode!=='text') {data.gapMode='text'; renderModes();} save();});
@@ -511,63 +537,157 @@
       document.getElementById('gapCandidate').addEventListener('change',event=>{data.gapCandidate=event.target.checked; save();});
       document.getElementById('generalNote').value=data.note;
       document.getElementById('generalNote').addEventListener('input',event=>{data.note=event.target.value; save();});
-      const gptInput=document.getElementById('gptInput');
-      const gptMessage=document.getElementById('gptMessage');
-      const importFields=['題材','テーマ','誰に','何を','どう思われたいか','確定条件','最終成果物の形'];
-      function parseGptSummary(source) {
-        if (source.length>250000) throw new Error('長さ');
+      function buildBackupData() {
+        return {
+          format:FORMAT,version:FORMAT_VERSION,savedAt:new Date().toISOString(),
+          case:{
+            fields:Object.fromEntries(importFields.map(key=>[key,data.fields[key] || ''])),
+            impressionTags:data.quickTags.map(item=>({text:item.text,state:item.state===2?'candidate':'adopted'})),
+            selectedTerms:data.sections.flatMap(section=>section.items.filter(item=>item.state).map(item=>({sectionId:section.id,text:item.text,state:item.state===2?'candidate':'adopted'}))),
+            gap:{mode:data.gapMode,text:data.gapText,candidate:data.gapCandidate},note:data.note
+          },
+          library:{sections:data.sections.map(section=>({id:section.id,name:section.name,group:section.group,custom:section.custom,items:section.items.map(item=>({text:item.text,custom:item.custom}))}))}
+        };
+      }
+      function parseImport(source) {
+        if (!source.trim() || source.length>1000000) throw new Error('JSONが空か、大きすぎます（上限1MB）。');
         const block=source.match(/```json\s*([\s\S]*?)\s*```/i);
-        const value=JSON.parse(block?block[1]:source);
-        if (!value || value.format!=='theme-impression-memo-import' || value.version!==1 ||
-            !value.fields || typeof value.fields!=='object' || Array.isArray(value.fields) ||
-            !Array.isArray(value.impressionTags) || typeof value.note!=='string') throw new Error('形式');
+        let raw;
+        try { raw=JSON.parse(block?block[1]:source); }
+        catch { throw new Error('JSONを読み取れませんでした。'); }
+        let envelope;
+        if (raw?.format===FORMAT && raw.version===FORMAT_VERSION) envelope=raw;
+        else if (raw?.format==='theme-impression-memo-import' && raw.version===1) {
+          envelope={case:{fields:raw.fields,impressionTags:raw.impressionTags,note:raw.note}};
+        } else if (Array.isArray(raw?.sections) && raw.fields && typeof raw.fields==='object') {
+          envelope={
+            case:{fields:raw.fields,impressionTags:raw.quickTags,selectedTerms:raw.sections.flatMap(section=>
+              Array.isArray(section.items)?section.items.filter(item=>item?.state).map(item=>({sectionId:section.id,text:item.text,state:item.state})):[]),
+              gap:{mode:raw.gapMode,text:raw.gapText,candidate:raw.gapCandidate},note:raw.note},
+            library:{sections:raw.sections}
+          };
+        } else throw new Error('テーマ印象メモのJSON形式ではありません。');
+        const sourceCase=envelope.case;
+        if (!sourceCase || !sourceCase.fields || typeof sourceCase.fields!=='object' || Array.isArray(sourceCase.fields) ||
+            !Array.isArray(sourceCase.impressionTags) || typeof sourceCase.note!=='string' || sourceCase.note.length>20000) throw new Error('今回の制作の形式が正しくありません。');
         const fields={};
         for (const key of importFields) {
-          const text=value.fields[key];
-          if (text===undefined || text===null || text==='') continue;
-          if (typeof text!=='string' || text.length>2000) throw new Error('項目');
-          fields[key]=text.replace(/\s+/g,' ').trim();
+          const value=sourceCase.fields[key];
+          if (value===undefined || value===null || value==='') continue;
+          if (typeof value!=='string' || value.length>2000) throw new Error('項目「'+key+'」の形式が正しくありません。');
+          fields[key]=value.replace(/\s+/g,' ').trim();
         }
-        if (value.impressionTags.length>100 || value.note.length>20000) throw new Error('長さ');
-        const tags=value.impressionTags.map(item=>{
-          if (!item || typeof item.text!=='string' || !item.text.trim() || item.text.length>120 ||
-              !['adopted','candidate'].includes(item.state)) throw new Error('印象タグ');
-          return {text:item.text.replace(/\s+/g,' ').trim(),state:item.state==='candidate'?2:1};
-        });
-        return {fields,tags,note:value.note.trim()};
+        const readState=value=>value==='adopted'||value===1?1:value==='candidate'||value===2?2:0;
+        const readTags=(items,withSection)=>{
+          if (!Array.isArray(items) || items.length>1000) throw new Error('印象タグが多すぎるか、形式が正しくありません。');
+          return items.map(item=>{
+            if (!item || typeof item.text!=='string' || !item.text.trim() || item.text.length>120 || !readState(item.state) ||
+                (withSection && (typeof item.sectionId!=='string' || item.sectionId.length>100))) throw new Error('印象タグの形式が正しくありません。');
+            return {text:item.text.replace(/\s+/g,' ').trim(),state:readState(item.state),...(withSection?{sectionId:item.sectionId}:{})};
+          });
+        };
+        const tags=readTags(sourceCase.impressionTags,false);
+        const selectedTerms=readTags(sourceCase.selectedTerms || [],true);
+        const gap=sourceCase.gap || {};
+        if (!gap || typeof gap!=='object' || Array.isArray(gap) ||
+            (gap.mode!==undefined && !modes.some(mode=>mode[0]===gap.mode)) ||
+            (gap.text!==undefined && (typeof gap.text!=='string' || gap.text.length>2000)) ||
+            (gap.candidate!==undefined && typeof gap.candidate!=='boolean')) throw new Error('ギャップの形式が正しくありません。');
+        let library=null;
+        if (envelope.library!==undefined) {
+          const sections=envelope.library?.sections;
+          if (!Array.isArray(sections) || sections.length>200) throw new Error('設定の形式が正しくありません。');
+          const ids=new Set(), names=new Set();
+          library={sections:sections.map(section=>{
+            if (!section || typeof section.id!=='string' || !section.id || section.id.length>100 ||
+                typeof section.name!=='string' || !section.name.trim() || section.name.length>50 ||
+                !groups.some(group=>group[0]===section.group) || typeof section.custom!=='boolean' ||
+                !Array.isArray(section.items) || section.items.length>300 || ids.has(section.id) || names.has(section.name)) throw new Error('印象項目の形式が正しくありません。');
+            ids.add(section.id); names.add(section.name);
+            const words=new Set();
+            return {id:section.id,name:section.name,group:section.group,custom:section.custom,items:section.items.map(item=>{
+              if (!item || typeof item.text!=='string' || !item.text.trim() || item.text.length>120 ||
+                  typeof item.custom!=='boolean' || words.has(item.text)) throw new Error('候補語の形式が正しくありません。');
+              words.add(item.text); return {text:item.text,custom:item.custom};
+            })};
+          })};
+        }
+        return {case:{fields,tags,selectedTerms,gap:{mode:gap.mode || '',text:gap.text || '',candidate:gap.candidate===true},note:sourceCase.note},library,savedAt:typeof envelope.savedAt==='string'?envelope.savedAt:''};
       }
-      document.getElementById('gptFile').addEventListener('change',async event=>{
-        const file=event.target.files[0]; if (!file) return;
-        if (file.size>250000) { gptMessage.textContent='ファイルが大きすぎます（上限250KB）。'; return; }
-        try { gptInput.value=await file.text(); gptMessage.textContent='ファイルを読み込みました。内容を確認して取り込んでください。'; }
-        catch { gptMessage.textContent='ファイルを読み込めませんでした。'; }
-      });
-      document.getElementById('gptImport').addEventListener('click',()=>{
-        let imported;
-        try { imported=parseGptSummary(gptInput.value.trim()); }
-        catch { gptMessage.textContent='取り込み形式を読み取れませんでした。Web版GPTへの依頼文にあるJSON形式を確認してください。'; return; }
-        const fields=Object.entries(imported.fields).filter(([key])=>!display(data.fields[key]));
-        const skipped=Object.keys(imported.fields).filter(key=>display(data.fields[key]));
-        const addNote=imported.note && !data.note.includes(imported.note);
-        if (!fields.length && !imported.tags.length && !addNote) { gptMessage.textContent='追加する内容はありません。'; return; }
-        const excerpt=(value,max=180)=>value.length>max?value.slice(0,max)+'…（全'+value.length+'文字）':value;
-        const summary=[
-          ...fields.map(([key,value])=>key+'：'+excerpt(value)),
-          ...(imported.tags.length?['印象タグ '+imported.tags.length+'件：'+excerpt(imported.tags.map(item=>item.text+(item.state===2?'？':'')).join('／'))]:[]),
-          ...(addNote?['自由記述：'+excerpt(imported.note)]:[]),
-          ...(skipped.length?['入力済みのため維持：'+skipped.join('、')]:[])
-        ].join('\n');
-        if (!confirm('次の内容を追加します。入力済みの欄は維持します。\n\n'+summary+'\n\n取り込みますか？')) return;
-        for (const [key,value] of fields) {
-          data.fields[key]=value;
-          document.querySelectorAll('[data-field]').forEach(el=>{if(el.dataset.field===key) el.value=value;});
+      function applyCase(target, source, add) {
+        for (const [key,value] of Object.entries(source.fields)) if (!add || !display(target.fields[key])) target.fields[key]=value;
+        target.quickTags.push(...source.tags);
+        for (const selection of source.selectedTerms) {
+          const item=target.sections.find(section=>section.id===selection.sectionId)?.items.find(item=>item.text===selection.text);
+          if (item) {if (!add || !item.state) item.state=selection.state;}
+          else target.quickTags.push({text:selection.text,state:selection.state});
         }
-        data.quickTags.push(...imported.tags);
-        if (addNote) {data.note+=(data.note.trim()?'\n\n':'')+imported.note; document.getElementById('generalNote').value=data.note;}
-        if (fields.length) document.querySelector('details[aria-labelledby="contextTitle"]').open=true;
-        if (addNote) document.querySelector('details[aria-labelledby="notesTitle"]').open=true;
-        renderQuickTags(); save();
-        gptMessage.textContent='取り込みました。入力済みの欄と印象選択は維持しています。';
+        if (!add || !target.gapMode) {
+          target.gapMode=source.gap.mode; target.gapText=source.gap.text; target.gapCandidate=source.gap.candidate;
+        }
+        if (source.note && (!add || !target.note.includes(source.note))) target.note=add && target.note.trim()?target.note+'\n\n'+source.note:source.note;
+        return target;
+      }
+      function renderImportedData() {
+        document.querySelectorAll('[data-field]').forEach(el=>{el.value=data.fields[el.dataset.field] || '';});
+        document.getElementById('gapText').value=data.gapText;
+        document.getElementById('gapCandidate').checked=data.gapCandidate;
+        document.getElementById('generalNote').value=data.note;
+        categoryGroup.value=data.activeGroup==='all'?'feeling':data.activeGroup;
+        renderLibraryTargetOptions(); renderLibraryList(); renderQuickTags(); renderTabs(); renderSections(); renderMatches(); renderModes();
+        if (Object.values(data.fields).some(value=>String(value).trim())) document.querySelector('details[aria-labelledby="contextTitle"]').open=true;
+        if (data.gapMode || data.gapText) document.querySelector('details[aria-labelledby="gapTitle"]').open=true;
+        if (data.note) document.querySelector('details[aria-labelledby="notesTitle"]').open=true;
+      }
+      let pendingImport=null;
+      const importInput=document.getElementById('importInput');
+      const importPreview=document.getElementById('importPreview');
+      const importControls=document.getElementById('importControls');
+      const ioMessage=document.getElementById('ioMessage');
+      const importMode=document.getElementById('importMode');
+      function invalidateImport() { pendingImport=null; importPreview.hidden=true; importControls.hidden=true; }
+      importInput.addEventListener('input',invalidateImport);
+      function checkImport() {
+        invalidateImport();
+        try { pendingImport=parseImport(importInput.value.trim()); }
+        catch (error) { ioMessage.textContent=error.message; return; }
+        const item=pendingImport;
+        const names=Object.keys(item.case.fields);
+        const customCount=item.library?.sections.reduce((n,section)=>n+Number(section.custom)+section.items.filter(word=>word.custom).length,0) || 0;
+        importPreview.textContent=[
+          '入力項目：'+(names.join('、') || 'なし'),
+          '印象タグ：'+item.case.tags.length+'件／印象項目の選択：'+item.case.selectedTerms.length+'件',
+          '自由記述：'+(item.case.note?'あり':'なし'),
+          '設定：'+(item.library?'あり（追加した候補語・項目 '+customCount+'件）':'なし'),
+          ...(item.savedAt?['保存日時：'+item.savedAt]:[])
+        ].join('\n');
+        importPreview.hidden=false; importControls.hidden=false;
+        importMode.querySelector('[value="full"]').disabled=!item.library;
+        importMode.value=item.library?'replace':'add'; ioMessage.textContent='内容と読み込み方法を確認してください。';
+      }
+      document.getElementById('checkImport').addEventListener('click',checkImport);
+      document.getElementById('importFile').addEventListener('change',async event=>{
+        const file=event.target.files[0]; if (!file) return;
+        invalidateImport();
+        if (file.size>1000000) { ioMessage.textContent='ファイルが大きすぎます（上限1MB）。'; return; }
+        try { importInput.value=await file.text(); checkImport(); event.target.value=''; }
+        catch { ioMessage.textContent='ファイルを読み込めませんでした。'; }
+      });
+      document.getElementById('applyImport').addEventListener('click',()=>{
+        if (!pendingImport) return;
+        const mode=importMode.value;
+        if (mode==='full' && !pendingImport.library) return;
+        const explanation={add:'空欄・印象タグ・未選択の語へ追加します。入力済みの内容と設定は維持します。',replace:'今回の制作を置き換えます。候補語と印象項目は維持します。',full:'今回の制作と候補語・印象項目をこのJSONで置き換えます。'};
+        if (!confirm(explanation[mode]+'\n\n読み込みますか？')) return;
+        const base=mode==='full'?blankCase(normalizeSaved({sections:pendingImport.library.sections})):mode==='replace'?blankCase(data):JSON.parse(JSON.stringify(data));
+        data=applyCase(base,pendingImport.case,mode==='add');
+        if (mode!=='add') document.querySelectorAll('details.panel').forEach(el=>el.open=false);
+        renderImportedData();
+        const stored=save();
+        ioMessage.textContent=stored?'読み込みました。':'画面には反映しましたが、このブラウザへ自動保存できません。JSONを保存してください。';
+        if (stored) {document.getElementById('ioDialog').close(); showMessage('JSONを読み込みました。');}
+        importInput.value=''; document.getElementById('importFile').value='';
+        invalidateImport();
       });
       if (Object.values(data.fields).some(value=>String(value).trim())) document.querySelector('details[aria-labelledby="contextTitle"]').open=true;
       if (data.gapMode || data.gapText) document.querySelector('details[aria-labelledby="gapTitle"]').open=true;
@@ -580,8 +700,32 @@
         }
       }
       document.getElementById('gptPromptCopy').addEventListener('click',async()=>{
-        gptMessage.textContent=await copyText(document.getElementById('gptPrompt').textContent)
+        document.getElementById('settingsMessage').textContent=await copyText(document.getElementById('gptPrompt').textContent)
           ?'Web版GPTへの依頼文をコピーしました。メールのやりとりと一緒に送ってください。':'依頼文をコピーできませんでした。';
+      });
+      document.getElementById('openIo').addEventListener('click',()=>document.getElementById('ioDialog').showModal());
+      document.getElementById('openSettings').addEventListener('click',()=>document.getElementById('settingsDialog').showModal());
+      document.querySelectorAll('[data-close]').forEach(button=>button.addEventListener('click',()=>document.getElementById(button.dataset.close).close()));
+      let backupHandle=null;
+      document.getElementById('saveJson').addEventListener('click',async()=>{
+        const value=JSON.stringify(buildBackupData(),null,2);
+        if (window.showSaveFilePicker) {
+          try {
+            const handle=backupHandle || await window.showSaveFilePicker({id:'theme-impression-memo-backup',suggestedName:BACKUP_NAME,types:[{description:'JSON',accept:{'application/json':['.json']}}]});
+            const writable=await handle.createWritable(); await writable.write(value); await writable.close();
+            backupHandle=handle; ioMessage.textContent='JSONを保存しました。'; return;
+          } catch (error) {
+            if (error?.name==='AbortError') return;
+            backupHandle=null; ioMessage.textContent='JSONを保存できませんでした。別の保存先で再試行してください。'; return;
+          }
+        }
+        const url=URL.createObjectURL(new Blob([value],{type:'application/json'}));
+        const link=document.createElement('a'); link.href=url; link.download=BACKUP_NAME;
+        document.body.append(link); link.click(); link.remove(); setTimeout(()=>URL.revokeObjectURL(url),1000);
+        ioMessage.textContent='JSONをダウンロードしました。以前の同名ファイルは保存先で置き換えてください。';
+      });
+      document.getElementById('copyJson').addEventListener('click',async()=>{
+        ioMessage.textContent=await copyText(JSON.stringify(buildBackupData(),null,2))?'JSONをコピーしました。':'JSONをコピーできませんでした。';
       });
       for (const id of ['copyButton','mobileCopyButton']) document.getElementById(id).addEventListener('click',async()=>{
         const copied=await copyText(memoText());
@@ -592,28 +736,13 @@
           setTimeout(()=>{button.textContent='文章をコピー';},2400);
         }
       });
-      document.getElementById('transferCopy').addEventListener('click',async()=>{
-        showMessage(await copyText(JSON.stringify(data))?'入力データをコピーしました。Webアプリ側に貼り付けてください。':'入力データをコピーできませんでした。');
-      });
-      document.getElementById('transferLoad').addEventListener('click',()=>{
-        const input=document.getElementById('transferInput').value;
-        if (input.length>1000000) { showMessage('入力データが大きすぎます。'); return; }
-        let imported;
-        try { imported=JSON.parse(input); } catch { showMessage('引き継ぎデータを読み取れませんでした。'); return; }
-        if (!imported || !Array.isArray(imported.sections) || !imported.fields || typeof imported.fields!=='object') {
-          showMessage('テーマ印象メモの入力データではありません。'); return;
-        }
-        if (!confirm('この画面の入力を、貼り付けたデータで置き換えますか？')) return;
-        try { localStorage.setItem(STORAGE_KEY,JSON.stringify(imported)); location.reload(); }
-        catch { showMessage('入力データを保存できませんでした。'); }
-      });
       document.getElementById('resetButton').addEventListener('click',()=>{
-        if (!confirm('入力と追加した項目をすべて消去しますか？')) return;
-        data=blank(); document.querySelectorAll('[data-field]').forEach(el=>el.value='');
-        quickInput.value=''; quickTarget.value=''; quickCandidate.checked=false; document.getElementById('quickSubmit').textContent='登録する';
+        if (!confirm('今回の制作内容と選択を消去しますか？追加した候補語・印象項目は残ります。')) return;
+        data=blankCase(data); document.querySelectorAll('[data-field]').forEach(el=>el.value='');
+        quickInput.value=''; quickCandidate.checked=false;
         document.getElementById('gapText').value=''; document.getElementById('gapCandidate').checked=false; document.getElementById('generalNote').value='';
         categoryGroup.value='feeling'; document.querySelectorAll('details.panel').forEach(el=>el.open=false);
-        renderTargetOptions(); renderQuickTags(); renderTabs(); renderSections(); renderMatches(); renderModes(); save(); showMessage('入力を消去しました。');
+        renderLibraryTargetOptions(); renderQuickTags(); renderTabs(); renderSections(); renderMatches(); renderModes(); save(); showMessage('今回の制作内容を消去しました。候補語と印象項目は残しています。');
       });
       document.getElementById('pngButton').addEventListener('click',async()=>{
         if (!window.showSaveFilePicker) { messageEl.textContent='このブラウザではPNG保存に対応していません。スクリーンショットをご利用ください。'; return; }
@@ -641,7 +770,7 @@
           messageEl.textContent='PNGを保存しました。';
         } catch (error) { if (error?.name!=='AbortError') messageEl.textContent='PNGを保存できませんでした。'; }
       });
-      renderTargetOptions(); renderQuickTags(); renderTabs(); renderSections(); renderModes(); save();
+      renderLibraryTargetOptions(); renderLibraryList(); renderQuickTags(); renderTabs(); renderSections(); renderModes(); save();
     })();
   </script>
 </body>
