@@ -96,7 +96,6 @@
     .dialog-row select { flex:1 1 180px; }
     .tool-dialog textarea { min-height:130px; }
     .tool-dialog input[type="file"] { display:block; width:100%; margin:5px 0 10px; font-weight:400; }
-    .tool-dialog pre { white-space:pre-wrap; overflow-wrap:anywhere; max-height:250px; overflow:auto; background:#fcfbff; border:1px solid var(--line); border-radius:9px; padding:10px; font-size:.78rem; }
     .library-list { display:grid; gap:7px; margin-top:8px; }
     .library-entry { display:flex; align-items:center; justify-content:space-between; gap:8px; border:1px solid var(--line); border-radius:8px; padding:6px 9px; font-size:.86rem; }
     .library-entry button { flex:none; }
@@ -113,7 +112,7 @@
   <div class="wrap">
     <header>
       <div><h1>テーマ印象メモ</h1><p class="sub">印象を選び、制作の手掛かりを添えて、チャットへそのままコピーできます。入力はこの端末のブラウザに保存され、サイトへ送信されません。</p></div>
-      <div><div class="header-actions"><button id="openIo" type="button" class="small-btn">入出力</button><button id="openSettings" type="button" class="small-btn">設定</button></div><p id="saveStatus" class="save-status" aria-live="polite"></p></div>
+      <div><div class="header-actions"><button id="openIo" type="button" class="small-btn">入出力・設定</button></div><p id="saveStatus" class="save-status" aria-live="polite"></p></div>
     </header>
     <main class="grid">
       <div class="stack editor">
@@ -169,41 +168,13 @@
     <div class="mobile-action"><button id="mobileCopyButton" type="button" class="action primary">文章をコピー</button></div>
   </div>
   <dialog id="ioDialog" class="tool-dialog" aria-labelledby="ioTitle"><div class="dialog-body">
-    <div class="dialog-head"><div><h2 id="ioTitle">入出力</h2><p class="hint">JSONは今回の制作と設定を保存します。別の端末ではファイルまたはコピーしたJSONを読み込んでください。</p></div><button type="button" class="small-btn" data-close="ioDialog">閉じる</button></div>
+    <div class="dialog-head"><div><h2 id="ioTitle">入出力・設定</h2><p class="hint">JSONは今回の制作と設定を保存します。別の端末ではファイルまたはコピーしたJSONを読み込んでください。</p></div><button type="button" class="small-btn" data-close="ioDialog">閉じる</button></div>
     <p id="ioMessage" class="message" role="status"></p>
-    <section class="dialog-section"><h3>書き出す</h3><p class="hint">バックアップ名は「theme-impression-memo.json」です。iCloudへ置く場合は、この一つのファイルを更新してください。</p><div class="dialog-row"><button id="saveJson" type="button" class="action primary">JSON保存</button><button id="copyJson" type="button" class="small-btn">JSONをコピー</button></div></section>
     <section class="dialog-section"><h3>読み込む</h3><label>JSONファイルを選ぶ<input id="importFile" type="file" accept=".json,.md,.markdown,.txt,application/json,text/markdown,text/plain"></label><label>またはJSONを貼り付ける<textarea id="importInput" placeholder="Web版GPTのJSON、またはアプリで保存・コピーしたJSON"></textarea></label><div class="dialog-row"><button id="checkImport" type="button" class="small-btn">内容を確認</button></div><div id="importPreview" class="import-preview" hidden></div><div id="importControls" hidden><label for="importMode">読み込み方法</label><select id="importMode"><option value="add">今回の制作へ追加（入力済みは維持）</option><option value="replace">今回の制作を置き換える（設定は維持）</option><option value="full">今回の制作と設定を復元する</option></select><div class="dialog-row"><button id="applyImport" type="button" class="action primary">この内容を読み込む</button></div></div></section>
-  </div></dialog>
-  <dialog id="settingsDialog" class="tool-dialog" aria-labelledby="settingsTitle"><div class="dialog-body">
-    <div class="dialog-head"><div><h2 id="settingsTitle">設定</h2><p class="hint">候補語と印象項目は「入力を消去」しても残ります。</p></div><button type="button" class="small-btn" data-close="settingsDialog">閉じる</button></div>
-    <p id="settingsMessage" class="message" role="status"></p>
-    <section class="dialog-section"><h3>印象項目の候補語を追加</h3><form id="libraryForm" class="dialog-row"><input id="libraryWord" type="text" maxlength="120" placeholder="追加する語" aria-label="追加する候補語"><select id="libraryTarget" aria-label="追加先の印象項目"></select><button type="submit" class="small-btn">候補語を追加</button></form></section>
+    <section class="dialog-section"><h3>書き出す</h3><p class="hint">バックアップ名は「theme-impression-memo.json」です。iCloudへ置く場合は、この一つのファイルを更新してください。</p><div class="dialog-row"><button id="saveJson" type="button" class="action primary">JSON保存</button><button id="copyJson" type="button" class="small-btn">JSONをコピー</button></div></section>
+    <section class="dialog-section"><h3>印象項目の候補語を追加</h3><p class="hint">候補語と印象項目は「入力を消去」しても残ります。</p><p id="settingsMessage" class="message" role="status"></p><form id="libraryForm" class="dialog-row"><input id="libraryWord" type="text" maxlength="120" placeholder="追加する語" aria-label="追加する候補語"><select id="libraryTarget" aria-label="追加先の印象項目"></select><button type="submit" class="small-btn">候補語を追加</button></form></section>
     <section class="dialog-section"><h3>新しい印象項目を作る</h3><form id="categoryForm" class="dialog-row"><input id="categoryName" type="text" maxlength="50" placeholder="項目名" aria-label="新しい印象項目の名前"><select id="categoryGroup" aria-label="新しい項目の大分類"></select><button class="small-btn" type="submit">項目を追加</button></form></section>
     <section class="dialog-section"><h3>追加した候補語・項目</h3><div id="libraryList" class="library-list"></div></section>
-    <section class="dialog-section"><h3>Web版GPTへの依頼文</h3><p class="hint">この文と依頼メールのやりとりをWeb版GPTへ渡してください。返答のJSONは「入出力」から読み込めます。</p>
-      <pre id="gptPrompt">以下の依頼メールのやりとりを読み、イラスト制作の初動に必要な情報を整理してください。推測で確定事項を作らず、不明な欄は空文字にしてください。印象の候補は candidate、明示的に決まった印象は adopted にしてください。メール本文をそのまま転載せず、要点だけ残してください。
-
-返答は説明やMarkdownのコード囲みを付けず、次の形式の有効なJSONだけにしてください。キー名と型は変えないでください。「誰に」は絵の想定閲覧者、「何を」は伝えたい内容、「どう思われたいか」は見た人に残したい印象です。noteには依頼内容の要点、制作条件、未確定事項を簡潔にまとめてください。印象タグは {"text":"透明感","state":"candidate"} の形で配列に入れ、不要なら空配列にしてください。
-
-{
-  "format": "theme-impression-memo",
-  "version": 2,
-  "case": {
-    "fields": {
-      "題材": "",
-      "テーマ": "",
-      "誰に": "",
-      "何を": "",
-      "どう思われたいか": "",
-      "確定条件": "",
-      "最終成果物の形": ""
-    },
-    "impressionTags": [],
-    "note": ""
-  }
-}
-
-例の「透明感」は実際の依頼に根拠がない限り出力しないでください。メール上で食い違う情報は、勝手に決めず note に未確定事項として記してください。</pre><button id="gptPromptCopy" type="button" class="small-btn">依頼文をコピー</button></section>
   </div></dialog>
   <script>
     (() => {
@@ -701,12 +672,7 @@
           const copied=document.execCommand('copy'); helper.remove(); return copied;
         }
       }
-      document.getElementById('gptPromptCopy').addEventListener('click',async()=>{
-        document.getElementById('settingsMessage').textContent=await copyText(document.getElementById('gptPrompt').textContent)
-          ?'Web版GPTへの依頼文をコピーしました。メールのやりとりと一緒に送ってください。':'依頼文をコピーできませんでした。';
-      });
       document.getElementById('openIo').addEventListener('click',()=>document.getElementById('ioDialog').showModal());
-      document.getElementById('openSettings').addEventListener('click',()=>document.getElementById('settingsDialog').showModal());
       document.querySelectorAll('[data-close]').forEach(button=>button.addEventListener('click',()=>document.getElementById(button.dataset.close).close()));
       let backupHandle=null;
       document.getElementById('saveJson').addEventListener('click',async()=>{
