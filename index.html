@@ -129,11 +129,11 @@
         <section class="panel" aria-labelledby="quickTitle">
           <h2 id="quickTitle">決まっている語から選ぶ</h2>
           <form id="quickForm" class="quick-form">
-            <input id="quickInput" type="text" maxlength="120" autocomplete="off" placeholder="例：夜。同じ語も何度でも登録できます" aria-label="すぐ選ぶ印象語">
+            <input id="quickInput" type="text" maxlength="120" autocomplete="off" placeholder="例：夜。候補語が一つに決まれば自動選択" aria-label="すぐ選ぶ印象語">
             <label class="quick-check"><input id="quickCandidate" type="checkbox">候補「？」</label>
             <button id="quickSubmit" class="action primary" type="submit">登録する</button>
           </form>
-          <p class="hint">入力して登録すると、既存の語でも新しい語でも印象タグに追加します。同じ語を複数回登録できます。</p>
+          <p class="hint">候補語と完全一致して追加先が一つなら、その印象を選択します。複数の項目にある語や新しい語は印象タグに追加します。</p>
           <div id="quickTags" class="quick-tags" aria-label="登録した印象タグ"></div>
           <div id="quickMatches" class="matches" aria-live="polite"></div>
           <p id="quickMessage" class="message" role="status"></p>
@@ -503,6 +503,8 @@
       quickInput.addEventListener('input',()=>{quickMessageEl.textContent=''; renderMatches();});
       document.getElementById('quickForm').addEventListener('submit',event=>{
         event.preventDefault(); const value=quickInput.value.trim(); if (!value) {quickInput.focus(); return;}
+        const exactMatches=matchesFor(value).filter(entry=>entry.exact);
+        if (exactMatches.length===1) { chooseMatch(exactMatches[0]); return; }
         data.quickTags.push({text:value,state:quickCandidate.checked?2:1});
         quickInput.value=''; renderQuickTags(); renderMatches(); save();
         showMessage('「'+value+'」を印象タグに登録しました。'); quickInput.focus();
