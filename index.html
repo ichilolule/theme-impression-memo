@@ -101,7 +101,7 @@
     .import-preview[hidden] { display:none; }
     .mobile-action { display:none; }
     @media(max-width:880px) { .grid { grid-template-columns:minmax(0,1fr); } .grid > *,.panel { min-width:0; } .sticky { position:static; } .wrap { padding:14px 10px 40px; } header { display:block; } .save-status { padding-top:5px; } }
-    @media(max-width:880px) { .wrap { padding-bottom:105px; } .mobile-action { display:block; position:fixed; left:0; right:0; bottom:0; z-index:5; padding:10px max(12px, env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left)); background:#fff; border-top:1px solid var(--line); box-shadow:0 -4px 16px #34234c14; } .mobile-action .action { width:100%; } body:has(input:focus,textarea:focus) .mobile-action { display:none; } }
+    @media(max-width:880px) { .wrap { padding-bottom:105px; } .mobile-action { display:flex; gap:8px; position:fixed; left:0; right:0; bottom:0; z-index:5; padding:10px max(12px, env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left)); background:#fff; border-top:1px solid var(--line); box-shadow:0 -4px 16px #34234c14; } .mobile-action .action { flex:1; min-width:0; padding:8px 5px; } body:has(input:focus,textarea:focus) .mobile-action { display:none; } }
     @media(max-width:560px) { .field-row { grid-template-columns:1fr; } .quick-form { grid-template-columns:1fr auto; } .quick-check { grid-column:1 / -1; min-height:25px; } .choice-section { grid-template-columns:1fr; gap:4px; } .section-head { min-height:0; } }
     @media print { body { background:white; } .wrap { max-width:none; padding:0; } header,.editor,.actions,.message,.hint,.foot,.mobile-action { display:none !important; } .grid { display:block; } .panel { border:0; box-shadow:none; padding:0; } .sticky { position:static; } .preview { border:0; padding:0; max-height:none; overflow:visible; } }
   </style>
@@ -157,19 +157,19 @@
       <aside class="panel sticky" aria-labelledby="previewTitle">
         <h2 id="previewTitle">コピーする文章</h2>
         <div id="preview" class="preview" aria-live="polite"></div>
-        <div class="actions"><button id="copyButton" type="button" class="action primary">文章をコピー</button><button id="pngButton" type="button" class="action">PNG保存</button></div>
+        <div class="actions"><button id="copyButton" type="button" class="action primary">コピー</button><button id="saveCase" type="button" class="action">保存</button><button id="pngButton" type="button" class="action">PNG化</button></div>
         <p id="message" class="message" role="status"></p>
-        <p class="hint">PNGは保存先を選び、同じファイルを更新できます。対応していないブラウザではスクリーンショットを使えます。</p>
+        <p class="hint">「保存」は今回の制作だけをJSONにします。PNGも画像ファイルとして保存できます。</p>
         <div class="foot"><button id="resetButton" type="button" class="subtle">入力を消去</button></div>
       </aside>
     </main>
-    <div class="mobile-action"><button id="mobileCopyButton" type="button" class="action primary">文章をコピー</button></div>
+    <div class="mobile-action"><button id="mobileCopyButton" type="button" class="action primary">コピー</button><button id="mobileSaveCase" type="button" class="action">保存</button><button id="mobilePngButton" type="button" class="action">PNG化</button></div>
   </div>
   <dialog id="ioDialog" class="tool-dialog" aria-labelledby="ioTitle"><div class="dialog-body">
-    <div class="dialog-head"><div><h2 id="ioTitle">入出力・設定</h2><p class="hint">JSONは今回の制作と設定を保存します。別の端末ではファイルまたはコピーしたJSONを読み込んでください。</p></div><button type="button" class="small-btn" data-close="ioDialog">閉じる</button></div>
+    <div class="dialog-head"><div><h2 id="ioTitle">入出力・設定</h2><p class="hint">依頼内容は画面の「保存」でJSONにします。ここでは追加した候補語・項目だけをバックアップします。</p></div><button type="button" class="small-btn" data-close="ioDialog">閉じる</button></div>
     <p id="ioMessage" class="message" role="status"></p>
-    <section class="dialog-section"><h3>読み込む</h3><label>JSONファイルを選ぶ<input id="importFile" type="file" accept=".json,.md,.markdown,.txt,application/json,text/markdown,text/plain"></label><label>またはJSONを貼り付ける<textarea id="importInput" placeholder="Web版GPTのJSON、またはアプリで保存・コピーしたJSON"></textarea></label><div class="dialog-row"><button id="checkImport" type="button" class="small-btn">内容を確認</button></div><div id="importPreview" class="import-preview" hidden></div><div id="importControls" hidden><label for="importMode">読み込み方法</label><select id="importMode"><option value="add">今回の制作へ追加（入力済みは維持）</option><option value="replace">今回の制作を置き換える（設定は維持）</option><option value="full">今回の制作と設定を復元する</option></select><div class="dialog-row"><button id="applyImport" type="button" class="action primary">この内容を読み込む</button></div></div></section>
-    <section class="dialog-section"><h3>書き出す</h3><p class="hint">バックアップ名は「theme-impression-memo.json」です。iCloudへ置く場合は、この一つのファイルを更新してください。</p><div class="dialog-row"><button id="saveJson" type="button" class="action primary">JSON保存</button><button id="copyJson" type="button" class="small-btn">JSONをコピー</button></div></section>
+    <section class="dialog-section"><h3>読み込む</h3><label>JSONファイルを選ぶ<input id="importFile" type="file" accept=".json,.md,.markdown,.txt,application/json,text/markdown,text/plain"></label><label>またはJSONを貼り付ける<textarea id="importInput" placeholder="依頼のJSON、設定のバックアップ、以前の一体型JSON"></textarea></label><div class="dialog-row"><button id="checkImport" type="button" class="small-btn">内容を確認</button></div><div id="importPreview" class="import-preview" hidden></div><div id="importControls" hidden><label for="importMode">読み込み方法</label><select id="importMode"><option value="add">今回の制作へ追加（入力済みは維持）</option><option value="replace">今回の制作を置き換える（設定は維持）</option><option value="settings">追加した候補語・項目を復元（今回の制作は維持）</option><option value="full">今回の制作と設定を復元する（旧形式）</option></select><div class="dialog-row"><button id="applyImport" type="button" class="action primary">この内容を読み込む</button></div></div></section>
+    <section class="dialog-section"><h3>書き出す ＞ バックアップ</h3><p class="hint">追加した候補語・項目だけを「theme-impression-memo.json」に保存します。題材・テーマ・選択した印象など、依頼内容は含みません。</p><div class="dialog-row"><button id="saveJson" type="button" class="action primary">バックアップを保存</button><button id="copyJson" type="button" class="small-btn">JSONをコピー</button></div></section>
     <section class="dialog-section"><h3>印象項目の候補語を追加</h3><p class="hint">候補語と印象項目は「入力を消去」しても残ります。</p><p id="settingsMessage" class="message" role="status"></p><form id="libraryForm" class="dialog-row"><input id="libraryWord" type="text" maxlength="120" placeholder="追加する語" aria-label="追加する候補語"><select id="libraryTarget" aria-label="追加先の印象項目"></select><button type="submit" class="small-btn">候補語を追加</button></form></section>
     <section class="dialog-section"><h3>新しい印象項目を作る</h3><form id="categoryForm" class="dialog-row"><input id="categoryName" type="text" maxlength="50" placeholder="項目名" aria-label="新しい印象項目の名前"><select id="categoryGroup" aria-label="新しい項目の大分類"></select><button class="small-btn" type="submit">項目を追加</button></form></section>
     <section class="dialog-section"><h3>追加した候補語・項目</h3><div id="libraryList" class="library-list"></div></section>
@@ -179,8 +179,9 @@
       'use strict';
       const STORAGE_KEY = 'theme-impression-memo-1';
       const BACKUP_NAME = 'theme-impression-memo.json';
+      const CASE_NAME = 'theme-impression-case.json';
       const FORMAT = 'theme-impression-memo';
-      const FORMAT_VERSION = 2;
+      const FORMAT_VERSION = 3;
       const importFields = ['題材','テーマ','誰に','何を','どう思われたいか','確定条件','最終成果物の形'];
       const groups = [
         ['feeling','印象・気分'],['world','世界・背景'],['character','キャラクター'],
@@ -292,7 +293,7 @@
       function save() {
         let stored=true;
         try { localStorage.setItem(STORAGE_KEY,JSON.stringify(data)); saveStatus.textContent='このブラウザに自動保存'; }
-        catch { stored=false; saveStatus.textContent='自動保存できません。JSONを保存して残してください'; }
+        catch { stored=false; saveStatus.textContent='自動保存できません。画面の「保存」でJSONを残してください'; }
         previewEl.textContent = memoText();
         return stored;
       }
@@ -508,17 +509,20 @@
       document.getElementById('gapCandidate').addEventListener('change',event=>{data.gapCandidate=event.target.checked; save();});
       document.getElementById('generalNote').value=data.note;
       document.getElementById('generalNote').addEventListener('input',event=>{data.note=event.target.value; save();});
+      const exportHeader = () => ({format:FORMAT,version:FORMAT_VERSION,savedAt:new Date().toISOString()});
+      function buildCaseData() {
+        return {...exportHeader(),case:{
+          fields:Object.fromEntries(importFields.map(key=>[key,data.fields[key] || ''])),
+          impressionTags:data.quickTags.map(item=>({text:item.text,state:item.state===2?'candidate':'adopted'})),
+          selectedTerms:data.sections.flatMap(section=>section.items.filter(item=>item.state).map(item=>({sectionId:section.id,text:item.text,state:item.state===2?'candidate':'adopted'}))),
+          gap:{mode:data.gapMode,text:data.gapText,candidate:data.gapCandidate},note:data.note
+        }};
+      }
       function buildBackupData() {
-        return {
-          format:FORMAT,version:FORMAT_VERSION,savedAt:new Date().toISOString(),
-          case:{
-            fields:Object.fromEntries(importFields.map(key=>[key,data.fields[key] || ''])),
-            impressionTags:data.quickTags.map(item=>({text:item.text,state:item.state===2?'candidate':'adopted'})),
-            selectedTerms:data.sections.flatMap(section=>section.items.filter(item=>item.state).map(item=>({sectionId:section.id,text:item.text,state:item.state===2?'candidate':'adopted'}))),
-            gap:{mode:data.gapMode,text:data.gapText,candidate:data.gapCandidate},note:data.note
-          },
-          library:{sections:data.sections.map(section=>({id:section.id,name:section.name,group:section.group,custom:section.custom,items:section.items.map(item=>({text:item.text,custom:item.custom}))}))}
-        };
+        return {...exportHeader(),library:{sections:data.sections.filter(section=>section.custom || section.items.some(item=>item.custom)).map(section=>({
+          id:section.id,name:section.name,group:section.group,custom:section.custom,
+          items:section.items.filter(item=>item.custom).map(item=>({text:item.text,custom:true}))
+        }))}};
       }
       function parseImport(source) {
         if (!source.trim() || source.length>1000000) throw new Error('JSONが空か、大きすぎます（上限1MB）。');
@@ -527,7 +531,7 @@
         try { raw=JSON.parse(block?block[1]:source); }
         catch { throw new Error('JSONを読み取れませんでした。'); }
         let envelope;
-        if (raw?.format===FORMAT && raw.version===FORMAT_VERSION) envelope=raw;
+        if (raw?.format===FORMAT && (raw.version===2 || raw.version===FORMAT_VERSION)) envelope=raw;
         else if (raw?.format==='theme-impression-memo-import' && raw.version===1) {
           envelope={case:{fields:raw.fields,impressionTags:raw.impressionTags,note:raw.note}};
         } else if (Array.isArray(raw?.sections) && raw.fields && typeof raw.fields==='object') {
@@ -539,10 +543,11 @@
           };
         } else throw new Error('テーマ印象メモのJSON形式ではありません。');
         const sourceCase=envelope.case;
-        if (!sourceCase || !sourceCase.fields || typeof sourceCase.fields!=='object' || Array.isArray(sourceCase.fields) ||
-            !Array.isArray(sourceCase.impressionTags) || typeof sourceCase.note!=='string' || sourceCase.note.length>20000) throw new Error('今回の制作の形式が正しくありません。');
+        if (sourceCase===undefined && envelope.library===undefined) throw new Error('今回の制作または設定がありません。');
+        if (sourceCase!==undefined && (!sourceCase || !sourceCase.fields || typeof sourceCase.fields!=='object' || Array.isArray(sourceCase.fields) ||
+            !Array.isArray(sourceCase.impressionTags) || typeof sourceCase.note!=='string' || sourceCase.note.length>20000)) throw new Error('今回の制作の形式が正しくありません。');
         const fields={};
-        for (const key of importFields) {
+        if (sourceCase) for (const key of importFields) {
           const value=sourceCase.fields[key];
           if (value===undefined || value===null || value==='') continue;
           if (typeof value!=='string' || value.length>2000) throw new Error('項目「'+key+'」の形式が正しくありません。');
@@ -557,13 +562,13 @@
             return {text:item.text.replace(/\s+/g,' ').trim(),state:readState(item.state),...(withSection?{sectionId:item.sectionId}:{})};
           });
         };
-        const tags=readTags(sourceCase.impressionTags,false);
-        const selectedTerms=readTags(sourceCase.selectedTerms || [],true);
-        const gap=sourceCase.gap || {};
-        if (!gap || typeof gap!=='object' || Array.isArray(gap) ||
+        const tags=sourceCase?readTags(sourceCase.impressionTags,false):[];
+        const selectedTerms=sourceCase?readTags(sourceCase.selectedTerms || [],true):[];
+        const gap=sourceCase?.gap || {};
+        if (sourceCase && (!gap || typeof gap!=='object' || Array.isArray(gap) ||
             (gap.mode!==undefined && !modes.some(mode=>mode[0]===gap.mode)) ||
             (gap.text!==undefined && (typeof gap.text!=='string' || gap.text.length>2000)) ||
-            (gap.candidate!==undefined && typeof gap.candidate!=='boolean')) throw new Error('ギャップの形式が正しくありません。');
+            (gap.candidate!==undefined && typeof gap.candidate!=='boolean'))) throw new Error('ギャップの形式が正しくありません。');
         let library=null;
         if (envelope.library!==undefined) {
           const sections=envelope.library?.sections;
@@ -583,7 +588,7 @@
             })};
           })};
         }
-        return {case:{fields,tags,selectedTerms,gap:{mode:gap.mode || '',text:gap.text || '',candidate:gap.candidate===true},note:sourceCase.note},library,savedAt:typeof envelope.savedAt==='string'?envelope.savedAt:''};
+        return {case:sourceCase?{fields,tags,selectedTerms,gap:{mode:gap.mode || '',text:gap.text || '',candidate:gap.candidate===true},note:sourceCase.note}:null,library,savedAt:typeof envelope.savedAt==='string'?envelope.savedAt:''};
       }
       function applyCase(target, source, add) {
         for (const [key,value] of Object.entries(source.fields)) if (!add || !display(target.fields[key])) target.fields[key]=value;
@@ -620,18 +625,20 @@
         try { pendingImport=parseImport(importInput.value.trim()); }
         catch (error) { ioMessage.textContent=error.message; return; }
         const item=pendingImport;
-        const names=Object.keys(item.case.fields);
+        const names=item.case?Object.keys(item.case.fields):[];
         const customCount=item.library?.sections.reduce((n,section)=>n+Number(section.custom)+section.items.filter(word=>word.custom).length,0) || 0;
         importPreview.textContent=[
-          '入力項目：'+(names.join('、') || 'なし'),
+          ...(item.case?['入力項目：'+(names.join('、') || 'なし'),
           '印象タグ：'+item.case.tags.length+'件／印象項目の選択：'+item.case.selectedTerms.length+'件',
-          '自由記述：'+(item.case.note?'あり':'なし'),
+          '自由記述：'+(item.case.note?'あり':'なし')]:['今回の制作：含まれません']),
           '設定：'+(item.library?'あり（追加した候補語・項目 '+customCount+'件）':'なし'),
           ...(item.savedAt?['保存日時：'+item.savedAt]:[])
         ].join('\n');
         importPreview.hidden=false; importControls.hidden=false;
-        importMode.querySelector('[value="full"]').disabled=!item.library;
-        importMode.value=item.library?'replace':'add'; ioMessage.textContent='内容と読み込み方法を確認してください。';
+        for (const value of ['add','replace']) importMode.querySelector('[value="'+value+'"]').disabled=!item.case;
+        importMode.querySelector('[value="settings"]').disabled=!item.library;
+        importMode.querySelector('[value="full"]').disabled=!(item.case && item.library);
+        importMode.value=item.case?'replace':'settings'; ioMessage.textContent='内容と読み込み方法を確認してください。';
       }
       document.getElementById('checkImport').addEventListener('click',checkImport);
       document.getElementById('importFile').addEventListener('change',async event=>{
@@ -644,14 +651,23 @@
       document.getElementById('applyImport').addEventListener('click',()=>{
         if (!pendingImport) return;
         const mode=importMode.value;
-        if (mode==='full' && !pendingImport.library) return;
-        const explanation={add:'空欄・印象タグ・未選択の語へ追加します。入力済みの内容と設定は維持します。',replace:'今回の制作を置き換えます。候補語と印象項目は維持します。',full:'今回の制作と候補語・印象項目をこのJSONで置き換えます。'};
+        if ((mode==='full' && !(pendingImport.case && pendingImport.library)) ||
+            (mode==='settings' && !pendingImport.library) ||
+            ((mode==='add' || mode==='replace') && !pendingImport.case)) return;
+        const explanation={add:'空欄・印象タグ・未選択の語へ追加します。入力済みの内容と設定は維持します。',replace:'今回の制作を置き換えます。候補語と印象項目は維持します。',settings:'追加した候補語・項目をこのJSONで置き換えます。今回の制作内容は維持します。',full:'今回の制作と候補語・印象項目をこのJSONで置き換えます。'};
         if (!confirm(explanation[mode]+'\n\n読み込みますか？')) return;
-        const base=mode==='full'?blankCase(normalizeSaved({sections:pendingImport.library.sections})):mode==='replace'?blankCase(data):JSON.parse(JSON.stringify(data));
-        data=applyCase(base,pendingImport.case,mode==='add');
+        if (mode==='settings') {
+          const current={fields:{...data.fields},tags:data.quickTags.map(item=>({...item})),
+            selectedTerms:data.sections.flatMap(section=>section.items.filter(item=>item.state).map(item=>({sectionId:section.id,text:item.text,state:item.state}))),
+            gap:{mode:data.gapMode,text:data.gapText,candidate:data.gapCandidate},note:data.note};
+          data=applyCase(blankCase(normalizeSaved({sections:pendingImport.library.sections})),current,false);
+        } else {
+          const base=mode==='full'?blankCase(normalizeSaved({sections:pendingImport.library.sections})):mode==='replace'?blankCase(data):JSON.parse(JSON.stringify(data));
+          data=applyCase(base,pendingImport.case,mode==='add');
+        }
         renderImportedData();
         const stored=save();
-        ioMessage.textContent=stored?'読み込みました。':'画面には反映しましたが、このブラウザへ自動保存できません。JSONを保存してください。';
+        ioMessage.textContent=stored?'読み込みました。':'画面には反映しましたが、このブラウザへ自動保存できません。依頼は画面の「保存」、設定はバックアップで残してください。';
         if (stored) {document.getElementById('ioDialog').close(); showMessage('JSONを読み込みました。');}
         importInput.value=''; document.getElementById('importFile').value='';
         invalidateImport();
@@ -665,6 +681,32 @@
       }
       document.getElementById('openIo').addEventListener('click',()=>document.getElementById('ioDialog').showModal());
       document.querySelectorAll('[data-close]').forEach(button=>button.addEventListener('click',()=>document.getElementById(button.dataset.close).close()));
+      function downloadFile(value,name,type) {
+        const url=URL.createObjectURL(value instanceof Blob?value:new Blob([value],{type}));
+        const link=document.createElement('a'); link.href=url; link.download=name;
+        document.body.append(link); link.click(); link.remove(); setTimeout(()=>URL.revokeObjectURL(url),1000);
+      }
+      function flashMobileButton(id,success) {
+        if (!id.startsWith('mobile')) return;
+        const button=document.getElementById(id), label=button.textContent;
+        button.textContent=success?'完了':'失敗';
+        setTimeout(()=>{button.textContent=label;},2400);
+      }
+      for (const id of ['saveCase','mobileSaveCase']) document.getElementById(id).addEventListener('click',async()=>{
+        const value=JSON.stringify(buildCaseData(),null,2);
+        if (window.showSaveFilePicker) {
+          try {
+            const handle=await window.showSaveFilePicker({suggestedName:CASE_NAME,types:[{description:'JSON',accept:{'application/json':['.json']}}]});
+            const writable=await handle.createWritable(); await writable.write(value); await writable.close();
+            showMessage('今回の制作をJSONに保存しました。'); flashMobileButton(id,true); return;
+          } catch (error) {
+            if (error?.name==='AbortError') return;
+            showMessage('JSONを保存できませんでした。別の保存先で再試行してください。'); flashMobileButton(id,false); return;
+          }
+        }
+        downloadFile(value,CASE_NAME,'application/json');
+        showMessage('今回の制作のJSONをダウンロードしました。'); flashMobileButton(id,true);
+      });
       let backupHandle=null;
       document.getElementById('saveJson').addEventListener('click',async()=>{
         const value=JSON.stringify(buildBackupData(),null,2);
@@ -678,10 +720,8 @@
             backupHandle=null; ioMessage.textContent='JSONを保存できませんでした。別の保存先で再試行してください。'; return;
           }
         }
-        const url=URL.createObjectURL(new Blob([value],{type:'application/json'}));
-        const link=document.createElement('a'); link.href=url; link.download=BACKUP_NAME;
-        document.body.append(link); link.click(); link.remove(); setTimeout(()=>URL.revokeObjectURL(url),1000);
-        ioMessage.textContent='JSONをダウンロードしました。以前の同名ファイルは保存先で置き換えてください。';
+        downloadFile(value,BACKUP_NAME,'application/json');
+        ioMessage.textContent='バックアップをダウンロードしました。以前の同名ファイルは保存先で置き換えてください。';
       });
       document.getElementById('copyJson').addEventListener('click',async()=>{
         ioMessage.textContent=await copyText(JSON.stringify(buildBackupData(),null,2))?'JSONをコピーしました。':'JSONをコピーできませんでした。';
@@ -692,7 +732,7 @@
         if (id==='mobileCopyButton') {
           const button=document.getElementById(id);
           button.textContent=copied?'コピーしました':'コピーできませんでした';
-          setTimeout(()=>{button.textContent='文章をコピー';},2400);
+          setTimeout(()=>{button.textContent='コピー';},2400);
         }
       });
       document.getElementById('resetButton').addEventListener('click',()=>{
@@ -703,8 +743,7 @@
         categoryGroup.value='feeling';
         renderLibraryTargetOptions(); renderQuickTags(); renderTabs(); renderSections(); renderMatches(); renderModes(); save(); showMessage('今回の制作内容を消去しました。候補語と印象項目は残しています。');
       });
-      document.getElementById('pngButton').addEventListener('click',async()=>{
-        if (!window.showSaveFilePicker) { messageEl.textContent='このブラウザではPNG保存に対応していません。スクリーンショットをご利用ください。'; return; }
+      for (const id of ['pngButton','mobilePngButton']) document.getElementById(id).addEventListener('click',async()=>{
         const text=memoText(), canvas=document.createElement('canvas'), ctx=canvas.getContext('2d');
         const width=1080, margin=70, lineHeight=41, font='25px -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif';
         ctx.font=font;
@@ -722,12 +761,16 @@
         ctx.fillStyle='#292932'; ctx.font=font; ctx.textBaseline='top';
         rows.forEach((row,i)=>ctx.fillText(row,margin,margin+i*lineHeight));
         const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));
-        if (!blob) { messageEl.textContent='PNGを作成できませんでした。'; return; }
+        if (!blob) { showMessage('PNGを作成できませんでした。'); flashMobileButton(id,false); return; }
+        if (!window.showSaveFilePicker) {
+          downloadFile(blob,'テーマ印象メモ.png','image/png');
+          showMessage('PNGをダウンロードしました。'); flashMobileButton(id,true); return;
+        }
         try {
           const handle=await window.showSaveFilePicker({suggestedName:'テーマ印象メモ.png',types:[{description:'PNG画像',accept:{'image/png':['.png']}}]});
           const writable=await handle.createWritable(); await writable.write(blob); await writable.close();
-          messageEl.textContent='PNGを保存しました。';
-        } catch (error) { if (error?.name!=='AbortError') messageEl.textContent='PNGを保存できませんでした。'; }
+          showMessage('PNGを保存しました。'); flashMobileButton(id,true);
+        } catch (error) { if (error?.name!=='AbortError') {showMessage('PNGを保存できませんでした。'); flashMobileButton(id,false);} }
       });
       renderLibraryTargetOptions(); renderLibraryList(); renderQuickTags(); renderTabs(); renderSections(); renderModes(); save();
     })();
