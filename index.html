@@ -159,7 +159,8 @@
         <div id="preview" class="preview" aria-live="polite"></div>
         <div class="actions"><button id="copyButton" type="button" class="action primary">コピー</button><button id="saveCase" type="button" class="action">保存</button><button id="pngButton" type="button" class="action">PNG化</button></div>
         <p id="message" class="message" role="status"></p>
-        <p class="hint">「保存」は今回の制作だけをJSONにします。PNGも画像ファイルとして保存できます。</p>
+        <p class="hint">対応ブラウザでは「保存」で題材名のJSONを設定したフォルダへ保存します。PNGも画像ファイルとして保存できます。</p>
+        <p id="caseDestination" class="hint" aria-live="polite"></p>
         <div class="foot"><button id="resetButton" type="button" class="subtle">入力を消去</button></div>
       </aside>
     </main>
@@ -168,8 +169,9 @@
   <dialog id="ioDialog" class="tool-dialog" aria-labelledby="ioTitle"><div class="dialog-body">
     <div class="dialog-head"><div><h2 id="ioTitle">入出力・設定</h2><p class="hint">依頼内容は画面の「保存」でJSONにします。ここでは追加した候補語・項目だけをバックアップします。</p></div><button type="button" class="small-btn" data-close="ioDialog">閉じる</button></div>
     <p id="ioMessage" class="message" role="status"></p>
+    <section class="dialog-section"><h3>依頼JSONの保存先</h3><p id="caseDirectoryStatus" class="hint">保存先を確認中です。</p><div class="dialog-row"><button id="chooseCaseDirectory" type="button" class="small-btn">保存先フォルダを設定</button></div></section>
     <section class="dialog-section"><h3>読み込む</h3><label>JSONファイルを選ぶ<input id="importFile" type="file" accept=".json,.md,.markdown,.txt,application/json,text/markdown,text/plain"></label><label>またはJSONを貼り付ける<textarea id="importInput" placeholder="依頼のJSON、設定のバックアップ、以前の一体型JSON"></textarea></label><div class="dialog-row"><button id="checkImport" type="button" class="small-btn">内容を確認</button></div><div id="importPreview" class="import-preview" hidden></div><div id="importControls" hidden><label for="importMode">読み込み方法</label><select id="importMode"><option value="add">今回の制作へ追加（入力済みは維持）</option><option value="replace">今回の制作を置き換える（設定は維持）</option><option value="settings">追加した候補語・項目を復元（今回の制作は維持）</option><option value="full">今回の制作と設定を復元する（旧形式）</option></select><div class="dialog-row"><button id="applyImport" type="button" class="action primary">この内容を読み込む</button></div></div></section>
-    <section class="dialog-section"><h3>書き出す ＞ バックアップ</h3><p class="hint">追加した候補語・項目だけを「theme-impression-memo.json」に保存します。題材・テーマ・選択した印象など、依頼内容は含みません。</p><div class="dialog-row"><button id="saveJson" type="button" class="action primary">バックアップを保存</button><button id="copyJson" type="button" class="small-btn">JSONをコピー</button></div></section>
+    <section class="dialog-section"><h3>書き出す ＞ バックアップ</h3><p class="hint">追加した候補語・項目だけを「theme-impression-memo.json」に保存します。題材・テーマ・選択した印象など、依頼内容は含みません。</p><p id="backupDestination" class="hint" aria-live="polite">保存先を確認中です。</p><div class="dialog-row"><button id="saveJson" type="button" class="action primary">バックアップを保存</button><button id="chooseBackup" type="button" class="small-btn">保存先を設定</button><button id="copyJson" type="button" class="small-btn">JSONをコピー</button></div></section>
     <section class="dialog-section"><h3>印象項目の候補語を追加</h3><p class="hint">候補語と印象項目は「入力を消去」しても残ります。</p><p id="settingsMessage" class="message" role="status"></p><form id="libraryForm" class="dialog-row"><input id="libraryWord" type="text" maxlength="120" placeholder="追加する語" aria-label="追加する候補語"><select id="libraryTarget" aria-label="追加先の印象項目"></select><button type="submit" class="small-btn">候補語を追加</button></form></section>
     <section class="dialog-section"><h3>新しい印象項目を作る</h3><form id="categoryForm" class="dialog-row"><input id="categoryName" type="text" maxlength="50" placeholder="項目名" aria-label="新しい印象項目の名前"><select id="categoryGroup" aria-label="新しい項目の大分類"></select><button class="small-btn" type="submit">項目を追加</button></form></section>
     <section class="dialog-section"><h3>追加した候補語・項目</h3><div id="libraryList" class="library-list"></div></section>
@@ -179,7 +181,9 @@
       'use strict';
       const STORAGE_KEY = 'theme-impression-memo-1';
       const BACKUP_NAME = 'theme-impression-memo.json';
-      const CASE_NAME = 'theme-impression-case.json';
+      const FALLBACK_CASE_NAME = 'テーマ印象メモ.json';
+      const HANDLE_DB_NAME = 'theme-impression-memo-handles-1';
+      const HANDLE_STORE = 'destinations';
       const FORMAT = 'theme-impression-memo';
       const FORMAT_VERSION = 3;
       const importFields = ['題材','テーマ','誰に','何を','どう思われたいか','確定条件','最終成果物の形'];
@@ -247,8 +251,8 @@
         axis('extra-composition-focus','主役にする魅力','composition',['顔','表情','仕草','衣装','関係性','小物','空間','色','光'])
       ];
       const modes = [['','未指定'],['text','自由記述'],['idea','案が欲しい'],['none','今回は入れない'],['undecided','未定']];
-      const blank = () => ({fields:{},sections:defaults.map(s=>({...s,items:s.items.map(item=>({...item}))})),quickTags:[],activeGroup:'feeling',gapMode:'',gapText:'',gapCandidate:false,note:''});
-      const blankCase = source => ({...source,fields:{},sections:source.sections.map(s=>({...s,items:s.items.map(item=>({...item,state:0}))})),quickTags:[],activeGroup:'feeling',gapMode:'',gapText:'',gapCandidate:false,note:''});
+      const blank = () => ({fields:{},sections:defaults.map(s=>({...s,items:s.items.map(item=>({...item}))})),quickTags:[],activeGroup:'feeling',gapMode:'',gapText:'',gapCandidate:false,note:'',caseSaved:null});
+      const blankCase = source => ({...source,fields:{},sections:source.sections.map(s=>({...s,items:s.items.map(item=>({...item,state:0}))})),quickTags:[],activeGroup:'feeling',gapMode:'',gapText:'',gapCandidate:false,note:'',caseSaved:null});
       const normalizeSaved = saved => {
         try {
           if (!saved || !Array.isArray(saved.sections)) return blank();
@@ -274,6 +278,7 @@
           fresh.gapText = typeof saved.gapText === 'string' ? saved.gapText : '';
           fresh.gapCandidate = saved.gapCandidate === true;
           fresh.note = typeof saved.note === 'string' ? saved.note : '';
+          fresh.caseSaved = saved.caseSaved && typeof saved.caseSaved.name==='string' && typeof saved.caseSaved.hash==='string' ? saved.caseSaved : null;
           return fresh;
         } catch { return blank(); }
       };
@@ -657,10 +662,12 @@
         const explanation={add:'空欄・印象タグ・未選択の語へ追加します。入力済みの内容と設定は維持します。',replace:'今回の制作を置き換えます。候補語と印象項目は維持します。',settings:'追加した候補語・項目をこのJSONで置き換えます。今回の制作内容は維持します。',full:'今回の制作と候補語・印象項目をこのJSONで置き換えます。'};
         if (!confirm(explanation[mode]+'\n\n読み込みますか？')) return;
         if (mode==='settings') {
+          const savedCase=data.caseSaved;
           const current={fields:{...data.fields},tags:data.quickTags.map(item=>({...item})),
             selectedTerms:data.sections.flatMap(section=>section.items.filter(item=>item.state).map(item=>({sectionId:section.id,text:item.text,state:item.state}))),
             gap:{mode:data.gapMode,text:data.gapText,candidate:data.gapCandidate},note:data.note};
           data=applyCase(blankCase(normalizeSaved({sections:pendingImport.library.sections})),current,false);
+          data.caseSaved=savedCase;
         } else {
           const base=mode==='full'?blankCase(normalizeSaved({sections:pendingImport.library.sections})):mode==='replace'?blankCase(data):JSON.parse(JSON.stringify(data));
           data=applyCase(base,pendingImport.case,mode==='add');
@@ -692,37 +699,168 @@
         button.textContent=success?'完了':'失敗';
         setTimeout(()=>{button.textContent=label;},2400);
       }
-      for (const id of ['saveCase','mobileSaveCase']) document.getElementById(id).addEventListener('click',async()=>{
-        const value=JSON.stringify(buildCaseData(),null,2);
-        if (window.showSaveFilePicker) {
-          try {
-            const handle=await window.showSaveFilePicker({suggestedName:CASE_NAME,types:[{description:'JSON',accept:{'application/json':['.json']}}]});
-            const writable=await handle.createWritable(); await writable.write(value); await writable.close();
-            showMessage('今回の制作をJSONに保存しました。'); flashMobileButton(id,true); return;
-          } catch (error) {
-            if (error?.name==='AbortError') return;
-            showMessage('JSONを保存できませんでした。別の保存先で再試行してください。'); flashMobileButton(id,false); return;
+      const caseButtons=['saveCase','mobileSaveCase'].map(id=>document.getElementById(id));
+      const backupButton=document.getElementById('saveJson');
+      const chooseCaseButton=document.getElementById('chooseCaseDirectory');
+      const chooseBackupButton=document.getElementById('chooseBackup');
+      let caseDirectory=null, backupHandle=null, backupHash='', caseRemembered=false, backupRemembered=false;
+      let destinationsLoaded=false, writingCase=false, writingBackup=false;
+      const directCase=typeof window.showDirectoryPicker==='function' && !!window.crypto?.subtle;
+      const directBackup=typeof window.showSaveFilePicker==='function' && !!window.crypto?.subtle;
+      function refreshDestinations() {
+        const caseText=caseDirectory
+          ? '保存先フォルダ：'+caseDirectory.name+(caseRemembered?'':'（このタブを閉じると再設定が必要です）')
+          : directCase?'未設定。最初の「保存」でフォルダを選べます。':'このブラウザでは直接保存できません。通常のダウンロードになります。';
+        document.getElementById('caseDestination').textContent=caseText;
+        document.getElementById('caseDirectoryStatus').textContent=caseText;
+        document.getElementById('backupDestination').textContent=backupHandle
+          ? '保存先ファイル：'+backupHandle.name+(backupRemembered?'':'（このタブを閉じると再設定が必要です）')
+          : directBackup?'未設定。最初の保存時にファイルを選べます。':'このブラウザでは直接保存できません。通常のダウンロードになります。';
+        chooseCaseButton.textContent=caseDirectory?'保存先フォルダを変更':'保存先フォルダを設定';
+        chooseBackupButton.textContent=backupHandle?'保存先を変更':'保存先を設定';
+        for (const button of caseButtons) button.disabled=!destinationsLoaded || writingCase;
+        backupButton.disabled=!destinationsLoaded || writingBackup;
+        chooseCaseButton.disabled=!destinationsLoaded || writingCase || !directCase;
+        chooseBackupButton.disabled=!destinationsLoaded || writingBackup || !directBackup;
+      }
+      function openHandleDatabase() {
+        return new Promise((resolve,reject)=>{
+          const request=indexedDB.open(HANDLE_DB_NAME,1);
+          request.onupgradeneeded=()=>request.result.createObjectStore(HANDLE_STORE);
+          request.onsuccess=()=>resolve(request.result);
+          request.onerror=()=>reject(request.error);
+        });
+      }
+      async function handleRecord(key,value) {
+        if (!window.indexedDB) throw new Error('IndexedDBを利用できません。');
+        const database=await openHandleDatabase();
+        try {
+          return await new Promise((resolve,reject)=>{
+            const transaction=database.transaction(HANDLE_STORE,value===undefined?'readonly':'readwrite');
+            const request=value===undefined?transaction.objectStore(HANDLE_STORE).get(key):transaction.objectStore(HANDLE_STORE).put(value,key);
+            request.onsuccess=()=>{if (value===undefined) resolve(request.result);};
+            transaction.oncomplete=()=>{if (value!==undefined) resolve(true);};
+            transaction.onerror=()=>reject(transaction.error);
+            transaction.onabort=()=>reject(transaction.error);
+          });
+        } finally {database.close();}
+      }
+      async function hashText(value) {
+        const bytes=new TextEncoder().encode(value);
+        const hash=await crypto.subtle.digest('SHA-256',bytes);
+        return [...new Uint8Array(hash)].map(part=>part.toString(16).padStart(2,'0')).join('');
+      }
+      async function permit(handle) {
+        let state=await handle.queryPermission({mode:'readwrite'}).catch(()=> 'prompt');
+        if (state!=='granted') state=await handle.requestPermission({mode:'readwrite'}).catch(()=> 'denied');
+        return state==='granted';
+      }
+      async function writeFile(handle,value) {
+        const writable=await handle.createWritable();
+        try {await writable.write(value); await writable.close();}
+        catch (error) {await writable.abort?.().catch(()=>{}); throw error;}
+      }
+      function caseFileName() {
+        const title=display(data.fields['題材']).normalize('NFC').replace(/[\u0000-\u001f<>:"/\\|?*]/g,'・').replace(/\s+/g,' ').replace(/\.json$/i,'').replace(/[. ]+$/g,'').slice(0,100).trim();
+        return title?title+'.json':FALLBACK_CASE_NAME;
+      }
+      async function chooseCaseDirectory(saveAfter=false,id='saveCase') {
+        let next;
+        try {next=await window.showDirectoryPicker({id:'theme-impression-cases',mode:'readwrite'});}
+        catch (error) {if (error?.name!=='AbortError') showMessage('保存先フォルダを選べませんでした。'); return;}
+        if (!await permit(next)) {showMessage('フォルダへの書き込みが許可されませんでした。'); return;}
+        const sameDirectory=caseDirectory?.isSameEntry && await caseDirectory.isSameEntry(next).catch(()=>false);
+        caseDirectory=next;
+        if (!sameDirectory) {data.caseSaved=null; save();}
+        try {await handleRecord('case-directory',{handle:next}); caseRemembered=true;}
+        catch {caseRemembered=false;}
+        refreshDestinations();
+        if (saveAfter) await writeCase(id);
+        else ioMessage.textContent='依頼JSONの保存先フォルダを設定しました。';
+      }
+      async function writeCase(id) {
+        if (!caseDirectory || writingCase) return;
+        writingCase=true; refreshDestinations();
+        try {
+          if (!await permit(caseDirectory)) {showMessage('保存先へのアクセスを再許可してください。'); return;}
+          const name=caseFileName(), value=JSON.stringify(buildCaseData(),null,2);
+          let existing=null;
+          try {existing=await caseDirectory.getFileHandle(name);}
+          catch (error) {if (error?.name!=='NotFoundError') throw error;}
+          if (existing) {
+            const diskHash=await hashText(await (await existing.getFile()).text());
+            if ((data.caseSaved?.name!==name || data.caseSaved.hash!==diskHash) &&
+                !confirm('保存先の「'+name+'」には別の内容があります。現在の制作内容で上書きしますか？')) return;
           }
-        }
-        downloadFile(value,CASE_NAME,'application/json');
-        showMessage('今回の制作のJSONをダウンロードしました。'); flashMobileButton(id,true);
-      });
-      let backupHandle=null;
-      document.getElementById('saveJson').addEventListener('click',async()=>{
-        const value=JSON.stringify(buildBackupData(),null,2);
-        if (window.showSaveFilePicker) {
-          try {
-            const handle=backupHandle || await window.showSaveFilePicker({id:'theme-impression-memo-backup',suggestedName:BACKUP_NAME,types:[{description:'JSON',accept:{'application/json':['.json']}}]});
-            const writable=await handle.createWritable(); await writable.write(value); await writable.close();
-            backupHandle=handle; ioMessage.textContent='JSONを保存しました。'; return;
-          } catch (error) {
-            if (error?.name==='AbortError') return;
-            backupHandle=null; ioMessage.textContent='JSONを保存できませんでした。別の保存先で再試行してください。'; return;
+          const target=existing || await caseDirectory.getFileHandle(name,{create:true});
+          await writeFile(target,value);
+          data.caseSaved={name,hash:await hashText(value)}; save();
+          showMessage('「'+name+'」を保存しました。'); flashMobileButton(id,true);
+        } catch {showMessage('依頼JSONを保存できませんでした。iCloudとChromeのアクセス権を確認してください。'); flashMobileButton(id,false);}
+        finally {writingCase=false; refreshDestinations();}
+      }
+      async function chooseBackup(saveAfter=false) {
+        let next;
+        try {next=await window.showSaveFilePicker({id:'theme-impression-memo-backup',suggestedName:BACKUP_NAME,types:[{description:'JSON',accept:{'application/json':['.json']}}]});}
+        catch (error) {if (error?.name!=='AbortError') ioMessage.textContent='バックアップの保存先を選べませんでした。'; return;}
+        if (next.name!==BACKUP_NAME) {ioMessage.textContent='バックアップのファイル名は '+BACKUP_NAME+' にしてください。'; return;}
+        try {
+          if (!await permit(next)) {ioMessage.textContent='ファイルへの書き込みが許可されませんでした。'; return;}
+          const diskText=await (await next.getFile()).text();
+          if (diskText) {
+            let same=false;
+            try {const old=JSON.parse(diskText); same=old?.format===FORMAT && !old.case && JSON.stringify(old.library)===JSON.stringify(buildBackupData().library);}
+            catch {}
+            if (!same && !confirm('選んだバックアップには別の内容があります。現在の追加語・項目だけで上書きしますか？')) return;
           }
-        }
-        downloadFile(value,BACKUP_NAME,'application/json');
-        ioMessage.textContent='バックアップをダウンロードしました。以前の同名ファイルは保存先で置き換えてください。';
+          backupHandle=next; backupHash=await hashText(diskText);
+          try {await handleRecord('backup-file',{handle:next,hash:backupHash}); backupRemembered=true;}
+          catch {backupRemembered=false;}
+          refreshDestinations();
+          if (saveAfter) await writeBackup();
+          else ioMessage.textContent='バックアップの保存先を設定しました。';
+        } catch {ioMessage.textContent='バックアップの保存先を準備できませんでした。iCloudの状態を確認してください。';}
+      }
+      async function writeBackup() {
+        if (!backupHandle || writingBackup) return;
+        writingBackup=true; refreshDestinations();
+        try {
+          if (!await permit(backupHandle)) {ioMessage.textContent='保存先へのアクセスを再許可してください。'; return;}
+          const diskText=await (await backupHandle.getFile()).text();
+          const diskHash=await hashText(diskText);
+          if (diskHash!==backupHash && !confirm('バックアップが別の操作で更新されています。現在の追加語・項目で上書きしますか？')) return;
+          const value=JSON.stringify(buildBackupData(),null,2);
+          await writeFile(backupHandle,value);
+          backupHash=await hashText(value);
+          try {await handleRecord('backup-file',{handle:backupHandle,hash:backupHash}); backupRemembered=true;}
+          catch {backupRemembered=false;}
+          ioMessage.textContent='バックアップを保存しました。';
+        } catch {ioMessage.textContent='バックアップを保存できませんでした。iCloudとChromeのアクセス権を確認してください。';}
+        finally {writingBackup=false; refreshDestinations();}
+      }
+      for (const id of ['saveCase','mobileSaveCase']) document.getElementById(id).addEventListener('click',()=>{
+        if (!directCase) {downloadFile(JSON.stringify(buildCaseData(),null,2),caseFileName(),'application/json'); showMessage('依頼JSONをダウンロードしました。'); flashMobileButton(id,true); return;}
+        if (!caseDirectory) return chooseCaseDirectory(true,id);
+        return writeCase(id);
       });
+      chooseCaseButton.addEventListener('click',()=>chooseCaseDirectory());
+      backupButton.addEventListener('click',()=>{
+        if (!directBackup) {downloadFile(JSON.stringify(buildBackupData(),null,2),BACKUP_NAME,'application/json'); ioMessage.textContent='バックアップをダウンロードしました。'; return;}
+        if (!backupHandle) return chooseBackup(true);
+        return writeBackup();
+      });
+      chooseBackupButton.addEventListener('click',()=>chooseBackup());
+      (async()=>{
+        try {
+          const [caseRecord,backupRecord]=await Promise.all([handleRecord('case-directory'),handleRecord('backup-file')]);
+          if (caseRecord?.handle?.kind==='directory') {caseDirectory=caseRecord.handle; caseRemembered=true;}
+          if (backupRecord?.handle?.kind==='file' && typeof backupRecord.hash==='string') {
+            backupHandle=backupRecord.handle; backupHash=backupRecord.hash; backupRemembered=true;
+          }
+        } catch {}
+        destinationsLoaded=true; refreshDestinations();
+      })();
+      refreshDestinations();
       document.getElementById('copyJson').addEventListener('click',async()=>{
         ioMessage.textContent=await copyText(JSON.stringify(buildBackupData(),null,2))?'JSONをコピーしました。':'JSONをコピーできませんでした。';
       });
