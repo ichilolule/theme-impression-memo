@@ -797,7 +797,7 @@
           await writeFile(target,value);
           data.caseSaved={name,hash:await hashText(value)}; save();
           showMessage('「'+name+'」を保存しました。'); flashMobileButton(id,true);
-        } catch {showMessage('依頼JSONを保存できませんでした。iCloudとChromeのアクセス権を確認してください。'); flashMobileButton(id,false);}
+        } catch {showMessage('依頼JSONを保存できませんでした。保存先の同期状態とChromeのアクセス権を確認してください。'); flashMobileButton(id,false);}
         finally {writingCase=false; refreshDestinations();}
       }
       async function chooseBackup(saveAfter=false) {
@@ -820,7 +820,7 @@
           refreshDestinations();
           if (saveAfter) await writeBackup();
           else ioMessage.textContent='バックアップの保存先を設定しました。';
-        } catch {ioMessage.textContent='バックアップの保存先を準備できませんでした。iCloudの状態を確認してください。';}
+        } catch {ioMessage.textContent='バックアップの保存先を準備できませんでした。保存先の状態を確認してください。';}
       }
       async function writeBackup() {
         if (!backupHandle || writingBackup) return;
@@ -836,7 +836,7 @@
           try {await handleRecord('backup-file',{handle:backupHandle,hash:backupHash}); backupRemembered=true;}
           catch {backupRemembered=false;}
           ioMessage.textContent='バックアップを保存しました。';
-        } catch {ioMessage.textContent='バックアップを保存できませんでした。iCloudとChromeのアクセス権を確認してください。';}
+        } catch {ioMessage.textContent='バックアップを保存できませんでした。保存先の同期状態とChromeのアクセス権を確認してください。';}
         finally {writingBackup=false; refreshDestinations();}
       }
       for (const id of ['saveCase','mobileSaveCase']) document.getElementById(id).addEventListener('click',()=>{
