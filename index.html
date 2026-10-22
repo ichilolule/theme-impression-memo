@@ -29,6 +29,7 @@
     .stack { display:grid; grid-template-columns:minmax(0,1fr); gap:12px; }
     .fields { display:grid; gap:12px; }
     .field-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .field-row.three { grid-template-columns:repeat(3,minmax(0,1fr)); }
     label { display:block; font-weight:650; font-size:.9rem; }
     input[type="text"],textarea { display:block; width:100%; min-width:0; margin-top:5px; padding:9px 11px; border:1px solid #c9c5d2; border-radius:9px; background:#fff; color:var(--ink); }
     input:focus-visible,textarea:focus-visible,button:focus-visible { outline:3px solid #aa90dc; outline-offset:2px; }
@@ -102,7 +103,7 @@
     .mobile-action { display:none; }
     @media(max-width:880px) { .grid { grid-template-columns:minmax(0,1fr); } .grid > *,.panel { min-width:0; } .sticky { position:static; } .wrap { padding:14px 10px 40px; } header { display:block; } .save-status { padding-top:5px; } }
     @media(max-width:880px) { .wrap { padding-bottom:105px; } .mobile-action { display:flex; gap:8px; position:fixed; left:0; right:0; bottom:0; z-index:5; padding:10px max(12px, env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left)); background:#fff; border-top:1px solid var(--line); box-shadow:0 -4px 16px #34234c14; } .mobile-action .action { flex:1; min-width:0; padding:8px 5px; } body:has(input:focus,textarea:focus) .mobile-action { display:none; } }
-    @media(max-width:560px) { .field-row { grid-template-columns:1fr; } .quick-form { grid-template-columns:1fr auto; } .quick-check { grid-column:1 / -1; min-height:25px; } .choice-section { grid-template-columns:1fr; gap:4px; } .section-head { min-height:0; } }
+    @media(max-width:560px) { .field-row,.field-row.three { grid-template-columns:1fr; } .quick-form { grid-template-columns:1fr auto; } .quick-check { grid-column:1 / -1; min-height:25px; } .choice-section { grid-template-columns:1fr; gap:4px; } .section-head { min-height:0; } }
     @media print { body { background:white; } .wrap { max-width:none; padding:0; } header,.editor,.actions,.message,.hint,.foot,.mobile-action { display:none !important; } .grid { display:block; } .panel { border:0; box-shadow:none; padding:0; } .sticky { position:static; } .preview { border:0; padding:0; max-height:none; overflow:visible; } }
   </style>
 </head>
@@ -115,9 +116,10 @@
     <main class="grid">
       <div class="stack editor">
         <section class="panel" aria-labelledby="contextTitle">
-          <h2 id="contextTitle">今回の制作（題材・テーマ・誰に／何を／どう思われたいか）</h2>
+          <h2 id="contextTitle">今回の制作</h2>
           <div class="fields">
-            <div class="field-row"><label>題材<input type="text" data-field="題材" placeholder="例：曲、キャラクター、依頼内容"></label><label>テーマ<input type="text" data-field="テーマ" placeholder="まだ曖昧でも大丈夫"></label></div>
+            <div class="field-row three"><label>依頼者名<input type="text" data-field="依頼者名" placeholder="依頼の場合だけ"></label><label>案件名<input type="text" data-field="案件名" placeholder="例：記念イラスト"></label><label>題材<input type="text" data-field="題材" placeholder="例：曲、キャラクター、好きなもの"></label></div>
+            <label>テーマ<input type="text" data-field="テーマ" placeholder="まだ曖昧でも大丈夫"></label>
             <div class="field-row"><label>誰に<input type="text" data-field="誰に" placeholder="例：見る人に"></label><label>何を<input type="text" data-field="何を" placeholder="例：人物の暮らしを"></label></div>
             <label>どう思われたいか<input type="text" data-field="どう思われたいか" placeholder="例：親しみがあると感じてほしい"></label>
             <div class="field-row"><label>確定条件・変えないこと<input type="text" data-field="確定条件" placeholder="決まっている場合だけ"></label><label>最終成果物の形<input type="text" data-field="最終成果物の形" placeholder="必要な場合だけ"></label></div>
@@ -159,7 +161,7 @@
         <div id="preview" class="preview" aria-live="polite"></div>
         <div class="actions"><button id="copyButton" type="button" class="action primary">コピー</button><button id="saveCase" type="button" class="action">保存</button><button id="pngButton" type="button" class="action">PNG化</button></div>
         <p id="message" class="message" role="status"></p>
-        <p class="hint">対応ブラウザでは「保存」で題材名のJSONを設定したフォルダへ保存します。PNGも画像ファイルとして保存できます。</p>
+        <p class="hint">対応ブラウザでは「保存」で依頼者名・案件名、または題材名のJSONを設定したフォルダへ保存します。PNGも画像ファイルとして保存できます。</p>
         <p id="caseDestination" class="hint" aria-live="polite"></p>
         <div class="foot"><button id="resetButton" type="button" class="subtle">入力を消去</button></div>
       </aside>
@@ -167,11 +169,11 @@
     <div class="mobile-action"><button id="mobileCopyButton" type="button" class="action primary">コピー</button><button id="mobileSaveCase" type="button" class="action">保存</button><button id="mobilePngButton" type="button" class="action">PNG化</button></div>
   </div>
   <dialog id="ioDialog" class="tool-dialog" aria-labelledby="ioTitle"><div class="dialog-body">
-    <div class="dialog-head"><div><h2 id="ioTitle">入出力・設定</h2><p class="hint">依頼内容は画面の「保存」でJSONにします。ここでは追加した候補語・項目だけをバックアップします。</p></div><button type="button" class="small-btn" data-close="ioDialog">閉じる</button></div>
+    <div class="dialog-head"><div><h2 id="ioTitle">入出力・設定</h2><p class="hint">制作内容は画面の「保存」でJSONにします。ここでは追加した候補語・項目だけをバックアップします。</p></div><button type="button" class="small-btn" data-close="ioDialog">閉じる</button></div>
     <p id="ioMessage" class="message" role="status"></p>
-    <section class="dialog-section"><h3>依頼JSONの保存先</h3><p id="caseDirectoryStatus" class="hint">保存先を確認中です。</p><div class="dialog-row"><button id="chooseCaseDirectory" type="button" class="small-btn">保存先フォルダを設定</button></div></section>
-    <section class="dialog-section"><h3>読み込む</h3><label>JSONファイルを選ぶ<input id="importFile" type="file" accept=".json,.md,.markdown,.txt,application/json,text/markdown,text/plain"></label><label>またはJSONを貼り付ける<textarea id="importInput" placeholder="依頼のJSON、設定のバックアップ、以前の一体型JSON"></textarea></label><div class="dialog-row"><button id="checkImport" type="button" class="small-btn">内容を確認</button></div><div id="importPreview" class="import-preview" hidden></div><div id="importControls" hidden><label for="importMode">読み込み方法</label><select id="importMode"><option value="add">今回の制作へ追加（入力済みは維持）</option><option value="replace">今回の制作を置き換える（設定は維持）</option><option value="settings">追加した候補語・項目を復元（今回の制作は維持）</option><option value="full">今回の制作と設定を復元する（旧形式）</option></select><div class="dialog-row"><button id="applyImport" type="button" class="action primary">この内容を読み込む</button></div></div></section>
-    <section class="dialog-section"><h3>書き出す ＞ バックアップ</h3><p class="hint">追加した候補語・項目だけを「theme-impression-memo.json」に保存します。題材・テーマ・選択した印象など、依頼内容は含みません。</p><p id="backupDestination" class="hint" aria-live="polite">保存先を確認中です。</p><div class="dialog-row"><button id="saveJson" type="button" class="action primary">バックアップを保存</button><button id="chooseBackup" type="button" class="small-btn">保存先を設定</button><button id="copyJson" type="button" class="small-btn">JSONをコピー</button></div></section>
+    <section class="dialog-section"><h3>制作JSONの保存先</h3><p id="caseDirectoryStatus" class="hint">保存先を確認中です。</p><div class="dialog-row"><button id="chooseCaseDirectory" type="button" class="small-btn">保存先フォルダを設定</button></div></section>
+    <section class="dialog-section"><h3>読み込む</h3><label>JSONファイルを選ぶ<input id="importFile" type="file" accept=".json,.md,.markdown,.txt,application/json,text/markdown,text/plain"></label><label>またはJSONを貼り付ける<textarea id="importInput" placeholder="制作のJSON、設定のバックアップ、以前の一体型JSON"></textarea></label><div class="dialog-row"><button id="checkImport" type="button" class="small-btn">内容を確認</button></div><div id="importPreview" class="import-preview" hidden></div><div id="importControls" hidden><label for="importMode">読み込み方法</label><select id="importMode"><option value="add">今回の制作へ追加（入力済みは維持）</option><option value="replace">今回の制作を置き換える（設定は維持）</option><option value="settings">追加した候補語・項目を復元（今回の制作は維持）</option><option value="full">今回の制作と設定を復元する（旧形式）</option></select><div class="dialog-row"><button id="applyImport" type="button" class="action primary">この内容を読み込む</button></div></div></section>
+    <section class="dialog-section"><h3>書き出す ＞ バックアップ</h3><p class="hint">追加した候補語・項目だけを「theme-impression-memo.json」に保存します。依頼者名・案件名・題材・テーマ・選択した印象など、制作内容は含みません。</p><p id="backupDestination" class="hint" aria-live="polite">保存先を確認中です。</p><div class="dialog-row"><button id="saveJson" type="button" class="action primary">バックアップを保存</button><button id="chooseBackup" type="button" class="small-btn">保存先を設定</button><button id="copyJson" type="button" class="small-btn">JSONをコピー</button></div></section>
     <section class="dialog-section"><h3>印象項目の候補語を追加</h3><p class="hint">候補語と印象項目は「入力を消去」しても残ります。</p><p id="settingsMessage" class="message" role="status"></p><form id="libraryForm" class="dialog-row"><input id="libraryWord" type="text" maxlength="120" placeholder="追加する語" aria-label="追加する候補語"><select id="libraryTarget" aria-label="追加先の印象項目"></select><button type="submit" class="small-btn">候補語を追加</button></form></section>
     <section class="dialog-section"><h3>新しい印象項目を作る</h3><form id="categoryForm" class="dialog-row"><input id="categoryName" type="text" maxlength="50" placeholder="項目名" aria-label="新しい印象項目の名前"><select id="categoryGroup" aria-label="新しい項目の大分類"></select><button class="small-btn" type="submit">項目を追加</button></form></section>
     <section class="dialog-section"><h3>追加した候補語・項目</h3><div id="libraryList" class="library-list"></div></section>
@@ -186,7 +188,7 @@
       const HANDLE_STORE = 'destinations';
       const FORMAT = 'theme-impression-memo';
       const FORMAT_VERSION = 3;
-      const importFields = ['題材','テーマ','誰に','何を','どう思われたいか','確定条件','最終成果物の形'];
+      const importFields = ['依頼者名','案件名','題材','テーマ','誰に','何を','どう思われたいか','確定条件','最終成果物の形'];
       const groups = [
         ['feeling','印象・気分'],['world','世界・背景'],['character','キャラクター'],
         ['color','色・光'],['composition','画面・構図']
@@ -305,7 +307,7 @@
       }
       function memoText() {
         const lines = ['【テーマ印象メモ】'];
-        for (const key of ['題材','テーマ','誰に','何を','どう思われたいか','確定条件','最終成果物の形']) {
+        for (const key of importFields) {
           const value = display(data.fields[key]);
           if (value) lines.push(key+'：'+value);
         }
@@ -675,7 +677,7 @@
         }
         renderImportedData();
         const stored=save();
-        ioMessage.textContent=stored?'読み込みました。':'画面には反映しましたが、このブラウザへ自動保存できません。依頼は画面の「保存」、設定はバックアップで残してください。';
+        ioMessage.textContent=stored?'読み込みました。':'画面には反映しましたが、このブラウザへ自動保存できません。制作内容は画面の「保存」、設定はバックアップで残してください。';
         if (stored) {document.getElementById('ioDialog').close(); showMessage('JSONを読み込みました。');}
         importInput.value=''; document.getElementById('importFile').value='';
         invalidateImport();
@@ -762,7 +764,9 @@
         catch (error) {await writable.abort?.().catch(()=>{}); throw error;}
       }
       function caseFileName() {
-        const title=display(data.fields['題材']).normalize('NFC').replace(/[\u0000-\u001f<>:"/\\|?*]/g,'・').replace(/\s+/g,' ').replace(/\.json$/i,'').replace(/[. ]+$/g,'').slice(0,100).trim();
+        const client=display(data.fields['依頼者名']), project=display(data.fields['案件名']);
+        const source=client && project ? client+'_'+project : project || display(data.fields['題材']) || client;
+        const title=source.normalize('NFC').replace(/[\u0000-\u001f<>:"/\\|?*]/g,'・').replace(/\s+/g,' ').replace(/\.json$/i,'').replace(/[. ]+$/g,'').slice(0,100).trim();
         return title?title+'.json':FALLBACK_CASE_NAME;
       }
       async function chooseCaseDirectory(saveAfter=false,id='saveCase') {
@@ -777,7 +781,7 @@
         catch {caseRemembered=false;}
         refreshDestinations();
         if (saveAfter) await writeCase(id);
-        else ioMessage.textContent='依頼JSONの保存先フォルダを設定しました。';
+        else ioMessage.textContent='制作JSONの保存先フォルダを設定しました。';
       }
       async function writeCase(id) {
         if (!caseDirectory || writingCase) return;
@@ -797,7 +801,7 @@
           await writeFile(target,value);
           data.caseSaved={name,hash:await hashText(value)}; save();
           showMessage('「'+name+'」を保存しました。'); flashMobileButton(id,true);
-        } catch {showMessage('依頼JSONを保存できませんでした。保存先の同期状態とChromeのアクセス権を確認してください。'); flashMobileButton(id,false);}
+        } catch {showMessage('制作JSONを保存できませんでした。保存先の同期状態とChromeのアクセス権を確認してください。'); flashMobileButton(id,false);}
         finally {writingCase=false; refreshDestinations();}
       }
       async function chooseBackup(saveAfter=false) {
@@ -840,7 +844,7 @@
         finally {writingBackup=false; refreshDestinations();}
       }
       for (const id of ['saveCase','mobileSaveCase']) document.getElementById(id).addEventListener('click',()=>{
-        if (!directCase) {downloadFile(JSON.stringify(buildCaseData(),null,2),caseFileName(),'application/json'); showMessage('依頼JSONをダウンロードしました。'); flashMobileButton(id,true); return;}
+        if (!directCase) {downloadFile(JSON.stringify(buildCaseData(),null,2),caseFileName(),'application/json'); showMessage('制作JSONをダウンロードしました。'); flashMobileButton(id,true); return;}
         if (!caseDirectory) return chooseCaseDirectory(true,id);
         return writeCase(id);
       });
