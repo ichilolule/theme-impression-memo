@@ -111,7 +111,7 @@
   <div class="wrap">
     <header>
       <div><h1>テーマ印象メモ</h1><p class="sub">案件ごとの入力をこの端末のブラウザに自動保存します。内容はサイトへ送信されません。</p></div>
-      <div><div class="header-actions"><button id="openIo" type="button" class="small-btn">入出力・設定</button><button id="readCase" type="button" class="small-btn" aria-label="クリップボードの案件JSONを現在の案件に読み込む">読み込み</button><button id="exportCase" type="button" class="action primary" aria-label="現在の案件JSONを書き出す">書き出し</button></div><p id="saveStatus" class="save-status" aria-live="polite"></p></div>
+      <div><div class="header-actions"><button id="openIo" type="button" class="small-btn">入出力・設定</button><button id="readCase" type="button" class="small-btn" aria-label="案件JSONを現在の案件に読み込む">読み込み</button><button id="exportCase" type="button" class="action primary" aria-label="現在の案件JSONを書き出す">書き出し</button></div><p id="saveStatus" class="save-status" aria-live="polite"></p></div>
     </header>
     <nav class="case-bar" aria-label="案件の切り替え"><div id="caseTabs" class="case-tabs"></div><button id="newCase" type="button" class="small-btn">＋新規</button></nav>
     <p id="message" class="message" role="status"></p>
@@ -160,7 +160,7 @@
       </div>
     </main>
   </div>
-  <dialog id="readDialog" class="tool-dialog" aria-labelledby="readTitle"><div class="dialog-body"><div class="dialog-head"><h2 id="readTitle">案件JSONを読み込む</h2><button type="button" class="small-btn" data-close="readDialog">閉じる</button></div><p id="readHint" class="hint"></p><label>読み込むJSON<textarea id="readInput" class="json-preview" spellcheck="false" placeholder="ここに案件JSONを貼り付けてください"></textarea></label><p id="readWarning" class="overwrite-warning" hidden></p><p id="readMessage" class="message" role="status"></p><div class="dialog-row"><button id="applyRead" type="button" class="action primary">読み込む</button><button type="button" class="small-btn" data-close="readDialog">キャンセル</button></div></div></dialog>
+  <dialog id="readDialog" class="tool-dialog" aria-labelledby="readTitle"><div class="dialog-body"><div class="dialog-head"><h2 id="readTitle">案件JSONを読み込む</h2><button type="button" class="small-btn" data-close="readDialog">閉じる</button></div><p class="hint">案件JSONを貼り付けるか、ファイルを選んでください。</p><p id="readWarning" class="overwrite-warning" hidden></p><label>読み込むJSON<textarea id="readInput" class="json-preview" spellcheck="false" placeholder="ここに案件JSONを貼り付けてください"></textarea></label><input id="readFile" type="file" accept=".json,.txt,application/json,text/plain" hidden><p id="readMessage" class="message" role="status"></p><div class="dialog-row"><button id="applyRead" type="button" class="action primary">コードから読み込み</button><button id="readFileButton" type="button" class="action">ファイルから読み込み</button></div></div></dialog>
   <dialog id="exportDialog" class="tool-dialog" aria-labelledby="exportTitle"><div class="dialog-body"><div class="dialog-head"><h2 id="exportTitle">案件JSONを書き出す</h2><button type="button" class="small-btn" data-close="exportDialog">閉じる</button></div><p id="exportFileName" class="hint"></p><label>書き出されるJSON<textarea id="exportPreview" class="json-preview" readonly spellcheck="false"></textarea></label><p id="exportMessage" class="message" role="status"></p><div class="dialog-row"><button id="copyCase" type="button" class="action primary">コピー</button><button id="saveCase" type="button" class="action">書き出し</button></div></div></dialog>
   <dialog id="ioDialog" class="tool-dialog" aria-labelledby="ioTitle"><div class="dialog-body">
     <div class="dialog-head"><div><h2 id="ioTitle">入出力・設定</h2><p class="hint">案件の共有用JSONと、全案件・共通設定のバックアップを扱います。</p></div><button type="button" class="small-btn" data-close="ioDialog">閉じる</button></div>
@@ -742,6 +742,7 @@
       const readDialog=document.getElementById('readDialog');
       const readInput=document.getElementById('readInput');
       const readMessage=document.getElementById('readMessage');
+      let readSession=0;
       function caseHasContent() {
         return importFields.some(key=>display(data.fields[key])) || data.quickTags.length>0 ||
           data.sections.some(section=>section.items.some(item=>item.state)) ||
@@ -760,33 +761,37 @@
         showMessage('現在の案件にJSONを読み込みました。');
         return true;
       }
-      function showReadDialog(value, hint='内容を確認して読み込んでください。') {
-        readInput.value=value;
-        document.getElementById('readHint').textContent=hint;
+      function showReadDialog() {
+        readSession++;
+        readInput.value='';
         const warning=document.getElementById('readWarning'), occupied=caseHasContent();
         warning.hidden=!occupied;
-        warning.textContent=occupied?'現在の「'+caseTitle(activeRecord())+'」の入力・選択・メモを、このJSONで上書きします。':'';
-        document.getElementById('applyRead').textContent=occupied?'上書きして読み込む':'読み込む';
-        readMessage.textContent=''; readDialog.showModal();
+        warning.textContent=occupied?'読み込むと、現在の「'+caseTitle(activeRecord())+'」の入力・選択・メモを上書きします。':'';
+        readMessage.textContent=''; readDialog.showModal(); readInput.focus();
       }
-      document.getElementById('readCase').addEventListener('click',async()=>{
-        let content;
-        try {content=await navigator.clipboard.readText();}
-        catch {showReadDialog('','クリップボードを直接読めませんでした。案件JSONを貼り付けてください。'); readInput.focus(); return;}
+      function readCurrentCase(value) {
         try {
-          const parsed=parseImport(content);
-          if (!parsed.case) throw new Error('案件JSONがありません。全件バックアップは「入出力・設定」から読み込んでください。');
-          if (!caseHasContent()) {replaceCurrentCase(parsed.case); return;}
-          showReadDialog(content);
-        } catch (error) {showReadDialog(content); readMessage.textContent=error.message;}
-      });
-      readInput.addEventListener('input',()=>{readMessage.textContent='';});
-      document.getElementById('applyRead').addEventListener('click',()=>{
-        try {
-          const parsed=parseImport(readInput.value);
+          const parsed=parseImport(value);
           if (!parsed.case) throw new Error('案件JSONがありません。全件バックアップは「入出力・設定」から読み込んでください。');
           if (replaceCurrentCase(parsed.case)) readDialog.close();
         } catch (error) {readMessage.textContent=error.message;}
+      }
+      document.getElementById('readCase').addEventListener('click',showReadDialog);
+      readInput.addEventListener('input',()=>{readMessage.textContent='';});
+      document.getElementById('applyRead').addEventListener('click',()=>readCurrentCase(readInput.value));
+      const readFile=document.getElementById('readFile');
+      document.getElementById('readFileButton').addEventListener('click',()=>readFile.click());
+      readFile.addEventListener('change',async()=>{
+        const file=readFile.files[0]; if (!file) return;
+        const session=readSession;
+        readFile.value='';
+        if (file.size>5000000) {readMessage.textContent='ファイルが大きすぎます（上限5MB）。'; return;}
+        try {
+          const value=await file.text();
+          if (!readDialog.open || session!==readSession) return;
+          readInput.value=value;
+          readCurrentCase(value);
+        } catch {if (readDialog.open && session===readSession) readMessage.textContent='ファイルを読み込めませんでした。';}
       });
       let pendingImport=null;
       const importInput=document.getElementById('importInput');
