@@ -168,7 +168,7 @@
     <section class="dialog-section"><h3>案件一覧</h3><p class="hint">タブをしまっても案件は残ります。ここで「削除」を押すと、この端末からすぐに削除します。</p><div id="caseList" class="library-list"></div></section>
     <section class="dialog-section"><h3>案件JSONの保存先</h3><p id="caseDirectoryStatus" class="hint">保存先を確認中です。</p><div class="dialog-row"><button id="chooseCaseDirectory" type="button" class="small-btn">保存先フォルダを設定</button></div></section>
     <section class="dialog-section"><h3>読み込む</h3><label>JSONファイルを選ぶ<input id="importFile" type="file" accept=".json,.md,.markdown,.txt,application/json,text/markdown,text/plain"></label><label>またはJSONを貼り付ける<textarea id="importInput" placeholder="案件JSON、全件バックアップ、以前のJSON形式"></textarea></label><div class="dialog-row"><button id="checkImport" type="button" class="small-btn">内容を確認</button></div><div id="importPreview" class="import-preview" hidden></div><div id="importControls" hidden><label for="importMode">読み込み方法</label><select id="importMode"><option value="new">新規案件として追加</option><option value="add">現在の案件へ追加（入力済みは維持）</option><option value="replace">現在の案件を置き換える（設定は維持）</option><option value="settings">共通の候補語・項目を復元</option><option value="full">現在の案件と共通設定を置き換える（旧形式）</option><option value="restore">全件バックアップから復元（現在の全案件を置き換える）</option></select><div class="dialog-row"><button id="applyImport" type="button" class="action primary">この内容を読み込む</button></div></div></section>
-    <section class="dialog-section"><h3>全件バックアップ</h3><p class="hint">すべての案件と共通の候補語・項目を「theme-impression-memo.json」に保存します。Google Driveへの同期・アップロード完了はDrive側で確認してください。</p><p id="backupDestination" class="hint" aria-live="polite">保存先を確認中です。</p><p id="backupStatus" class="hint"></p><div class="dialog-row"><button id="saveJson" type="button" class="action primary">全件バックアップを書き出す</button><button id="chooseBackup" type="button" class="small-btn">保存先を設定</button><button id="copyJson" type="button" class="small-btn">全件JSONをコピー</button></div></section>
+    <section class="dialog-section"><h3>全件バックアップ</h3><p class="hint">すべての案件と共通の候補語・項目を「theme-impression-memo.json」に保存します。対応するChromeで保存先を設定すると、変更から2分後、作業が続く場合も最長5分で自動更新します。起動時も内容に差があれば更新します。Google Driveへの同期・アップロード完了はDrive側で確認してください。</p><p id="backupDestination" class="hint" aria-live="polite">保存先を確認中です。</p><p id="backupStatus" class="hint"></p><p id="backupAutoStatus" class="hint" role="status" aria-live="polite"></p><div class="dialog-row"><button id="saveJson" type="button" class="action primary">全件バックアップを書き出す</button><button id="chooseBackup" type="button" class="small-btn">保存先を設定</button><button id="copyJson" type="button" class="small-btn">全件JSONをコピー</button></div></section>
     <section class="dialog-section"><h3>印象項目の候補語を追加</h3><p class="hint">候補語と印象項目は全案件に共通です。</p><p id="settingsMessage" class="message" role="status"></p><form id="libraryForm" class="dialog-row"><input id="libraryWord" type="text" maxlength="120" placeholder="追加する語" aria-label="追加する候補語"><select id="libraryTarget" aria-label="追加先の印象項目"></select><button type="submit" class="small-btn">候補語を追加</button></form></section>
     <section class="dialog-section"><h3>新しい印象項目を作る</h3><form id="categoryForm" class="dialog-row"><input id="categoryName" type="text" maxlength="50" placeholder="項目名" aria-label="新しい印象項目の名前"><select id="categoryGroup" aria-label="新しい項目の大分類"></select><button class="small-btn" type="submit">項目を追加</button></form></section>
     <section class="dialog-section"><h3>追加した候補語・項目</h3><div id="libraryList" class="library-list"></div></section>
@@ -185,6 +185,8 @@
       const FORMAT = 'theme-impression-memo';
       const FORMAT_VERSION = 3;
       const BACKUP_VERSION = 4;
+      const BACKUP_IDLE_MS = 2 * 60 * 1000;
+      const BACKUP_MAX_MS = 5 * 60 * 1000;
       const importFields = ['依頼者名','案件名','題材','テーマ','誰に','何を','どう思われたいか','確定条件','最終成果物の形'];
       const groups = [
         ['feeling','印象・気分'],['world','世界・背景'],['character','キャラクター'],
@@ -309,6 +311,7 @@
       const loaded=loadWorkspace();
       let workspace=loaded.value, storageBlocked=loaded.error;
       let data = loadCase(workspace.cases.find(item=>item.id===workspace.activeCaseId));
+      let observedBackupContent=comparableBackup(buildBackupData());
       const sectionsEl = document.getElementById('sections');
       const messageEl = document.getElementById('message');
       const quickMessageEl = document.getElementById('quickMessage');
@@ -321,6 +324,11 @@
           if (storageBlocked) throw new Error('stored data needs recovery');
           localStorage.setItem(WORKSPACE_KEY,JSON.stringify(workspace));
           saveStatus.textContent='この端末に自動保存';
+          const content=comparableBackup(buildBackupData());
+          if (content!==observedBackupContent) {
+            observedBackupContent=content;
+            scheduleBackup();
+          }
           return true;
         } catch {
           saveStatus.textContent=storageBlocked?'保存データを読めません。入出力・設定から復元してください':'自動保存できません。全件バックアップを書き出してください';
@@ -551,6 +559,11 @@
         return {format:FORMAT,version:BACKUP_VERSION,savedAt:new Date().toISOString(),activeCaseId:workspace.activeCaseId,
           cases:workspace.cases.map(item=>({id:item.id,createdAt:item.createdAt,updatedAt:item.updatedAt,archived:item.archived,activeGroup:item.id===workspace.activeCaseId?data.activeGroup:item.activeGroup,case:item.id===workspace.activeCaseId?casePayload(data):item.case})),
           library:libraryPayload(data)};
+      }
+      function comparableBackup(value) {
+        return JSON.stringify({format:value.format,version:value.version,
+          cases:value.cases.map(item=>({id:item.id,createdAt:item.createdAt,archived:item.archived,case:item.case})),
+          library:value.library});
       }
       function loadCase(record) {
         const base=blankCase(normalizeSaved({sections:workspace.library.sections}));
@@ -904,9 +917,22 @@
       const chooseCaseButton=document.getElementById('chooseCaseDirectory');
       const chooseBackupButton=document.getElementById('chooseBackup');
       let caseDirectory=null, backupHandle=null, backupHash='', caseRemembered=false, backupRemembered=false;
-      let destinationsLoaded=false, writingCase=false, writingBackup=false;
+      let destinationsLoaded=false, writingCase=false, writingBackup=false, backupConflict=false;
+      let backupIdleTimer=null, backupMaxTimer=null, backupChangeVersion=0;
       const directCase=typeof window.showDirectoryPicker==='function' && !!window.crypto?.subtle;
       const directBackup=typeof window.showSaveFilePicker==='function' && !!window.crypto?.subtle;
+      const backupAutoStatus=document.getElementById('backupAutoStatus');
+      function clearBackupTimers() {
+        clearTimeout(backupIdleTimer); clearTimeout(backupMaxTimer);
+        backupIdleTimer=null; backupMaxTimer=null;
+      }
+      function scheduleBackup() {
+        if (!backupHandle || backupConflict || storageBlocked || !directBackup) return;
+        backupChangeVersion++;
+        clearTimeout(backupIdleTimer);
+        backupIdleTimer=setTimeout(()=>writeBackup(true),BACKUP_IDLE_MS);
+        if (!backupMaxTimer) backupMaxTimer=setTimeout(()=>writeBackup(true),BACKUP_MAX_MS);
+      }
       function refreshDestinations() {
         const caseText=caseDirectory
           ? '保存先フォルダ：'+caseDirectory.name+(caseRemembered?'':'（このタブを閉じると再設定が必要です）')
@@ -1006,7 +1032,7 @@
         } catch {reportCase('案件JSONを書き出せませんでした。保存先の状態とアクセス権を確認してください。');}
         finally {writingCase=false; refreshDestinations();}
       }
-      async function chooseBackup(saveAfter=false) {
+      async function chooseBackup() {
         let next;
         try {next=await window.showSaveFilePicker({id:'theme-impression-memo-backup',suggestedName:BACKUP_NAME,types:[{description:'JSON',accept:{'application/json':['.json']}}]});}
         catch (error) {if (error?.name!=='AbortError') ioMessage.textContent='バックアップの保存先を選べませんでした。'; return;}
@@ -1016,35 +1042,77 @@
           const diskText=await (await next.getFile()).text();
           if (diskText) {
             let same=false;
-            try {const old=JSON.parse(diskText); same=old?.format===FORMAT && old.version===BACKUP_VERSION && JSON.stringify(old.cases)===JSON.stringify(buildBackupData().cases) && JSON.stringify(old.library)===JSON.stringify(buildBackupData().library);}
+            try {const old=JSON.parse(diskText); same=comparableBackup(old)===comparableBackup(buildBackupData());}
             catch {}
             if (!same && !confirm('選んだバックアップには別の内容があります。現在の全案件と共通設定で上書きしますか？')) return;
           }
-          backupHandle=next; backupHash=await hashText(diskText);
+          clearBackupTimers();
+          backupHandle=next; backupHash=await hashText(diskText); backupConflict=false;
           try {await handleRecord('backup-file',{handle:next,hash:backupHash}); backupRemembered=true;}
           catch {backupRemembered=false;}
           refreshDestinations();
-          if (saveAfter) await writeBackup();
-          else ioMessage.textContent='バックアップの保存先を設定しました。';
+          await writeBackup();
         } catch {ioMessage.textContent='バックアップの保存先を準備できませんでした。保存先の状態を確認してください。';}
       }
-      async function writeBackup() {
-        if (!backupHandle || writingBackup) return;
+      async function writeBackup(automatic=false) {
+        if (!backupHandle || writingBackup || storageBlocked) return;
+        clearBackupTimers();
+        const startedAtVersion=backupChangeVersion;
         writingBackup=true; refreshDestinations();
         try {
-          if (!await permit(backupHandle)) {ioMessage.textContent='保存先へのアクセスを再許可してください。'; return;}
-          const diskText=await (await backupHandle.getFile()).text();
-          const diskHash=await hashText(diskText);
-          if (diskHash!==backupHash && !confirm('バックアップが別の操作で更新されています。現在の全案件と共通設定で上書きしますか？')) return;
-          const value=JSON.stringify(buildBackupData(),null,2);
-          await writeFile(backupHandle,value);
-          backupHash=await hashText(value);
-          try {await handleRecord('backup-file',{handle:backupHandle,hash:backupHash}); backupRemembered=true;}
-          catch {backupRemembered=false;}
-          markBackupExported();
-          ioMessage.textContent='全件バックアップを書き出しました。Google Driveへの同期完了はDrive側で確認してください。';
-        } catch {ioMessage.textContent='バックアップを保存できませんでした。保存先の同期状態とChromeのアクセス権を確認してください。';}
-        finally {writingBackup=false; refreshDestinations();}
+          const allowed=automatic
+            ? await backupHandle.queryPermission({mode:'readwrite'}).catch(()=>'prompt')==='granted'
+            : await permit(backupHandle);
+          if (!allowed) {
+            backupAutoStatus.textContent='ファイルへのアクセスが切れています。「全件バックアップを書き出す」で再許可してください。';
+            if (!automatic) ioMessage.textContent='保存先へのアクセスを再許可してください。';
+            return;
+          }
+          const operation=async()=>{
+            const diskText=await (await backupHandle.getFile()).text();
+            const diskHash=await hashText(diskText);
+            if (diskHash!==backupHash) {
+              backupConflict=true;
+              if (automatic) {
+                backupAutoStatus.textContent='保存先のファイルが別の操作で更新されました。自動保存を停止しました。内容を確認してから保存先を再設定してください。';
+                return;
+              }
+              if (!confirm('バックアップが別の操作で更新されています。現在の全案件と共通設定で上書きしますか？')) return;
+            }
+            const snapshot=buildBackupData();
+            if (automatic && diskText) {
+              try {
+                if (comparableBackup(JSON.parse(diskText))===comparableBackup(snapshot)) {
+                  backupAutoStatus.textContent='全件バックアップは最新です。';
+                  return;
+                }
+              } catch {}
+            }
+            const value=JSON.stringify(snapshot,null,2);
+            await writeFile(backupHandle,value);
+            backupHash=await hashText(value); backupConflict=false;
+            try {await handleRecord('backup-file',{handle:backupHandle,hash:backupHash}); backupRemembered=true;}
+            catch {backupRemembered=false;}
+            markBackupExported(snapshot.savedAt);
+            backupAutoStatus.textContent=automatic?'全件バックアップを自動保存しました。':'全件バックアップを保存しました。';
+            if (!automatic) ioMessage.textContent='全件バックアップを書き出しました。Google Driveへの同期完了はDrive側で確認してください。';
+          };
+          if (navigator.locks) {
+            await navigator.locks.request('theme-impression-memo-backup', {ifAvailable:true}, async lock=>{
+              if (lock) await operation();
+              else backupAutoStatus.textContent='別のタブでバックアップを保存中です。次の変更時に再確認します。';
+            });
+          } else await operation();
+        } catch {
+          backupAutoStatus.textContent='全件バックアップを保存できませんでした。保存先の同期状態とChromeのアクセス権を確認してください。';
+          if (!automatic) ioMessage.textContent=backupAutoStatus.textContent;
+        }
+        finally {
+          writingBackup=false; refreshDestinations();
+          if (backupChangeVersion!==startedAtVersion && !backupConflict) {
+            clearBackupTimers(); scheduleBackup();
+          }
+        }
       }
       document.getElementById('saveCase').addEventListener('click',()=>{
         if (!pendingExport) return;
@@ -1055,7 +1123,7 @@
       chooseCaseButton.addEventListener('click',()=>chooseCaseDirectory());
       backupButton.addEventListener('click',()=>{
         if (!directBackup) {downloadFile(JSON.stringify(buildBackupData(),null,2),BACKUP_NAME,'application/json'); markBackupExported(); ioMessage.textContent='全件バックアップをダウンロードしました。Google Driveへのアップロードは別途確認してください。'; return;}
-        if (!backupHandle) return chooseBackup(true);
+        if (!backupHandle) return chooseBackup();
         return writeBackup();
       });
       chooseBackupButton.addEventListener('click',()=>chooseBackup());
@@ -1068,13 +1136,15 @@
           }
         } catch {}
         destinationsLoaded=true; refreshDestinations();
+        if (backupHandle && !storageBlocked) await writeBackup(true);
+        else if (!backupHandle) backupAutoStatus.textContent=directBackup?'保存先を設定すると自動更新を利用できます。':'このブラウザでは手動ダウンロードをご利用ください。';
       })();
       refreshDestinations();
       function renderBackupStatus() {
-        document.getElementById('backupStatus').textContent=workspace.lastBackupAt?'最終全件書き出し：'+new Date(workspace.lastBackupAt).toLocaleString('ja-JP'):'全件バックアップはまだ書き出していません。';
+        document.getElementById('backupStatus').textContent=workspace.lastBackupAt?'最終全件保存：'+new Date(workspace.lastBackupAt).toLocaleString('ja-JP'):'全件バックアップはまだ保存していません。';
       }
-      function markBackupExported() {
-        workspace.lastBackupAt=new Date().toISOString();
+      function markBackupExported(savedAt=new Date().toISOString()) {
+        workspace.lastBackupAt=savedAt;
         persistWorkspace(); renderBackupStatus();
       }
       document.getElementById('copyJson').addEventListener('click',async()=>{
