@@ -74,11 +74,11 @@
     .gap-extra { margin-top:11px; }
     .gap-extra .candidate-toggle { display:flex; align-items:center; gap:7px; margin-top:7px; font-weight:400; }
     .gap-extra .candidate-toggle input { margin:0; }
-    .case-bar { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:0 0 14px; }
-    .case-tabs { display:flex; flex:1 1 300px; min-width:0; gap:6px; overflow-x:auto; padding:3px 0; }
+    .case-bar { display:flex; align-items:center; gap:8px; margin:0 0 14px; }
+    .case-tabs { display:flex; flex:1; min-width:0; gap:6px; overflow-x:auto; padding:3px 0; }
     .case-tab { flex:none; border:1px solid var(--line); border-radius:9px; background:#fff; padding:7px 11px; max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
     .case-tab[aria-current="page"] { background:var(--accent); border-color:var(--accent); color:#fff; }
-    .case-tools { display:flex; flex-wrap:wrap; gap:7px; }
+    .case-bar > button { flex:none; }
     .primary { background:var(--accent); border-color:var(--accent); color:white; font-weight:700; }
     .primary:hover { background:#52348b; }
     .message { min-height:1.6em; color:#345f3b; font-size:.88rem; }
@@ -101,9 +101,9 @@
     .library-entry button { flex:none; }
     .import-preview { white-space:pre-wrap; overflow-wrap:anywhere; background:#fcfbff; border:1px solid var(--line); border-radius:9px; padding:10px; margin-top:8px; font-size:.84rem; }
     .import-preview[hidden] { display:none; }
-    .mobile-action { display:none; }
+    .json-preview { font: .82rem/1.5 ui-monospace,SFMono-Regular,Menlo,monospace; min-height:250px !important; max-height:48dvh; white-space:pre; }
+    .overwrite-warning { color:#8a3b14; background:#fff2e9; border:1px solid #dfb89f; border-radius:9px; padding:9px 11px; margin:8px 0; }
     @media(max-width:880px) { .grid > *,.panel { min-width:0; } .wrap { padding:14px 10px 40px; } header { display:block; } .save-status { padding-top:5px; } }
-    @media(max-width:880px) { .wrap { padding-bottom:105px; } .mobile-action { display:flex; gap:8px; position:fixed; left:0; right:0; bottom:0; z-index:5; padding:10px max(12px, env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left)); background:#fff; border-top:1px solid var(--line); box-shadow:0 -4px 16px #34234c14; } .mobile-action .action { flex:1; min-width:0; padding:8px 5px; } body:has(input:focus,textarea:focus) .mobile-action { display:none; } }
     @media(max-width:560px) { .field-row,.field-row.three { grid-template-columns:1fr; } .quick-form { grid-template-columns:1fr auto; } .quick-check { grid-column:1 / -1; min-height:25px; } .choice-section { grid-template-columns:1fr; gap:4px; } .section-head { min-height:0; } }
   </style>
 </head>
@@ -111,9 +111,9 @@
   <div class="wrap">
     <header>
       <div><h1>テーマ印象メモ</h1><p class="sub">案件ごとの入力をこの端末のブラウザに自動保存します。内容はサイトへ送信されません。</p></div>
-      <div><div class="header-actions"><button id="openIo" type="button" class="small-btn">入出力・設定</button></div><p id="saveStatus" class="save-status" aria-live="polite"></p></div>
+      <div><div class="header-actions"><button id="openIo" type="button" class="small-btn">入出力・設定</button><button id="readCase" type="button" class="small-btn" aria-label="クリップボードの案件JSONを現在の案件に読み込む">読み込み</button><button id="exportCase" type="button" class="action primary" aria-label="現在の案件JSONを書き出す">書き出し</button></div><p id="saveStatus" class="save-status" aria-live="polite"></p></div>
     </header>
-    <nav class="case-bar" aria-label="案件の切り替え"><div id="caseTabs" class="case-tabs"></div><div class="case-tools"><button id="newCase" type="button" class="small-btn">＋新規</button><button id="clipboardCase" type="button" class="small-btn">クリップボードから新規</button><button id="manageCases" type="button" class="small-btn">案件一覧</button><button id="copyButton" type="button" class="action primary">案件JSONをコピー</button></div></nav>
+    <nav class="case-bar" aria-label="案件の切り替え"><div id="caseTabs" class="case-tabs"></div><button id="newCase" type="button" class="small-btn">＋新規</button></nav>
     <p id="message" class="message" role="status"></p>
     <main class="grid">
       <div class="stack editor">
@@ -159,13 +159,14 @@
         </section>
       </div>
     </main>
-    <div class="mobile-action"><button id="mobileCopyButton" type="button" class="action primary">案件JSONをコピー</button></div>
   </div>
-  <dialog id="casesDialog" class="tool-dialog" aria-labelledby="casesTitle"><div class="dialog-body"><div class="dialog-head"><h2 id="casesTitle">案件一覧</h2><button type="button" class="small-btn" data-close="casesDialog">閉じる</button></div><p class="hint">タブをしまっても案件は残ります。削除は一覧から行えます。</p><div id="caseList" class="library-list"></div></div></dialog>
+  <dialog id="readDialog" class="tool-dialog" aria-labelledby="readTitle"><div class="dialog-body"><div class="dialog-head"><h2 id="readTitle">案件JSONを読み込む</h2><button type="button" class="small-btn" data-close="readDialog">閉じる</button></div><p id="readHint" class="hint"></p><label>読み込むJSON<textarea id="readInput" class="json-preview" spellcheck="false" placeholder="ここに案件JSONを貼り付けてください"></textarea></label><p id="readWarning" class="overwrite-warning" hidden></p><p id="readMessage" class="message" role="status"></p><div class="dialog-row"><button id="applyRead" type="button" class="action primary">読み込む</button><button type="button" class="small-btn" data-close="readDialog">キャンセル</button></div></div></dialog>
+  <dialog id="exportDialog" class="tool-dialog" aria-labelledby="exportTitle"><div class="dialog-body"><div class="dialog-head"><h2 id="exportTitle">案件JSONを書き出す</h2><button type="button" class="small-btn" data-close="exportDialog">閉じる</button></div><p id="exportFileName" class="hint"></p><label>書き出されるJSON<textarea id="exportPreview" class="json-preview" readonly spellcheck="false"></textarea></label><p id="exportMessage" class="message" role="status"></p><div class="dialog-row"><button id="copyCase" type="button" class="action primary">コピー</button><button id="saveCase" type="button" class="action">書き出し</button></div></div></dialog>
   <dialog id="ioDialog" class="tool-dialog" aria-labelledby="ioTitle"><div class="dialog-body">
     <div class="dialog-head"><div><h2 id="ioTitle">入出力・設定</h2><p class="hint">案件の共有用JSONと、全案件・共通設定のバックアップを扱います。</p></div><button type="button" class="small-btn" data-close="ioDialog">閉じる</button></div>
     <p id="ioMessage" class="message" role="status"></p>
-    <section class="dialog-section"><h3>現在の案件を共有用に保存</h3><p id="caseDirectoryStatus" class="hint">保存先を確認中です。</p><div class="dialog-row"><button id="saveCase" type="button" class="action">案件JSONを保存</button><button id="chooseCaseDirectory" type="button" class="small-btn">保存先フォルダを設定</button></div></section>
+    <section class="dialog-section"><h3>案件一覧</h3><p class="hint">タブをしまっても案件は残ります。ここで「削除」を押すと、この端末からすぐに削除します。</p><div id="caseList" class="library-list"></div></section>
+    <section class="dialog-section"><h3>案件JSONの保存先</h3><p id="caseDirectoryStatus" class="hint">保存先を確認中です。</p><div class="dialog-row"><button id="chooseCaseDirectory" type="button" class="small-btn">保存先フォルダを設定</button></div></section>
     <section class="dialog-section"><h3>読み込む</h3><label>JSONファイルを選ぶ<input id="importFile" type="file" accept=".json,.md,.markdown,.txt,application/json,text/markdown,text/plain"></label><label>またはJSONを貼り付ける<textarea id="importInput" placeholder="案件JSON、全件バックアップ、以前のJSON形式"></textarea></label><div class="dialog-row"><button id="checkImport" type="button" class="small-btn">内容を確認</button></div><div id="importPreview" class="import-preview" hidden></div><div id="importControls" hidden><label for="importMode">読み込み方法</label><select id="importMode"><option value="new">新規案件として追加</option><option value="add">現在の案件へ追加（入力済みは維持）</option><option value="replace">現在の案件を置き換える（設定は維持）</option><option value="settings">共通の候補語・項目を復元</option><option value="full">現在の案件と共通設定を置き換える（旧形式）</option><option value="restore">全件バックアップから復元（現在の全案件を置き換える）</option></select><div class="dialog-row"><button id="applyImport" type="button" class="action primary">この内容を読み込む</button></div></div></section>
     <section class="dialog-section"><h3>全件バックアップ</h3><p class="hint">すべての案件と共通の候補語・項目を「theme-impression-memo.json」に保存します。Google Driveへの同期・アップロード完了はDrive側で確認してください。</p><p id="backupDestination" class="hint" aria-live="polite">保存先を確認中です。</p><p id="backupStatus" class="hint"></p><div class="dialog-row"><button id="saveJson" type="button" class="action primary">全件バックアップを書き出す</button><button id="chooseBackup" type="button" class="small-btn">保存先を設定</button><button id="copyJson" type="button" class="small-btn">全件JSONをコピー</button></div></section>
     <section class="dialog-section"><h3>印象項目の候補語を追加</h3><p class="hint">候補語と印象項目は全案件に共通です。</p><p id="settingsMessage" class="message" role="status"></p><form id="libraryForm" class="dialog-row"><input id="libraryWord" type="text" maxlength="120" placeholder="追加する語" aria-label="追加する候補語"><select id="libraryTarget" aria-label="追加先の印象項目"></select><button type="submit" class="small-btn">候補語を追加</button></form></section>
@@ -682,7 +683,7 @@
           }
         }
         host.scrollLeft=scroll;
-        if (document.getElementById('casesDialog').open) renderCaseList();
+        if (document.getElementById('ioDialog').open) renderCaseList();
       }
       function switchCase(id) {
         if (id===workspace.activeCaseId || !save()) return;
@@ -698,7 +699,7 @@
         workspace.cases.push({id,createdAt:now,updatedAt:now,archived:false,activeGroup:next.activeGroup,case:casePayload(next),caseSaved:null});
         workspace.activeCaseId=id; data=next;
         renderImportedData(); persistWorkspace();
-        showMessage(source?'クリップボードの案件を新規タブに読み込みました。':'新しい案件を作成しました。');
+        showMessage(source?'案件を新規タブに追加しました。':'新しい案件を作成しました。');
         return true;
       }
       function archiveCase(id) {
@@ -718,10 +719,9 @@
           const label=document.createElement('span'); label.textContent=caseTitle(record)+(record.archived?'（しまった案件）':'');
           const controls=document.createElement('span'); controls.className='dialog-row'; controls.style.marginTop='0';
           const open=document.createElement('button'); open.type='button'; open.className='small-btn'; open.textContent='開く';
-          open.addEventListener('click',()=>{switchCase(record.id); document.getElementById('casesDialog').close();});
+          open.addEventListener('click',()=>{switchCase(record.id); document.getElementById('ioDialog').close();});
           const remove=document.createElement('button'); remove.type='button'; remove.className='delete'; remove.textContent='削除';
           remove.addEventListener('click',()=>{
-            if (!confirm('「'+caseTitle(record)+'」をこの端末から削除しますか？全件バックアップには次回の書き出しまで残ります。')) return;
             if (!save()) return;
             workspace.cases=workspace.cases.filter(item=>item.id!==record.id);
             if (!workspace.cases.length) {
@@ -739,21 +739,54 @@
         }
       }
       document.getElementById('newCase').addEventListener('click',()=>createCase());
-      document.getElementById('manageCases').addEventListener('click',()=>{renderCaseList(); document.getElementById('casesDialog').showModal();});
-      document.getElementById('clipboardCase').addEventListener('click',async()=>{
-        let content;
-        try { content=await navigator.clipboard.readText(); }
-        catch {
-          document.getElementById('ioDialog').showModal();
-          document.getElementById('importInput').focus();
-          document.getElementById('ioMessage').textContent='クリップボードを直接読めませんでした。JSONを貼り付けて「内容を確認」を押してください。';
-          return;
+      const readDialog=document.getElementById('readDialog');
+      const readInput=document.getElementById('readInput');
+      const readMessage=document.getElementById('readMessage');
+      function caseHasContent() {
+        return importFields.some(key=>display(data.fields[key])) || data.quickTags.length>0 ||
+          data.sections.some(section=>section.items.some(item=>item.state)) ||
+          !!(data.gapMode || data.gapText.trim() || data.gapCandidate || data.note.trim());
+      }
+      function replaceCurrentCase(source) {
+        const record=activeRecord(), previous={case:record.case,caseSaved:record.caseSaved,activeGroup:record.activeGroup,updatedAt:record.updatedAt};
+        const previousData=data, previousLibrary=workspace.library;
+        data=applyCase(blankCase(data),source,false);
+        renderImportedData();
+        if (!save()) {
+          data=previousData; Object.assign(record,previous); workspace.library=previousLibrary; renderImportedData();
+          showMessage('読み込んだ案件を保存できませんでした。端末の空き容量を確認してください。');
+          return false;
         }
+        showMessage('現在の案件にJSONを読み込みました。');
+        return true;
+      }
+      function showReadDialog(value, hint='内容を確認して読み込んでください。') {
+        readInput.value=value;
+        document.getElementById('readHint').textContent=hint;
+        const warning=document.getElementById('readWarning'), occupied=caseHasContent();
+        warning.hidden=!occupied;
+        warning.textContent=occupied?'現在の「'+caseTitle(activeRecord())+'」の入力・選択・メモを、このJSONで上書きします。':'';
+        document.getElementById('applyRead').textContent=occupied?'上書きして読み込む':'読み込む';
+        readMessage.textContent=''; readDialog.showModal();
+      }
+      document.getElementById('readCase').addEventListener('click',async()=>{
+        let content;
+        try {content=await navigator.clipboard.readText();}
+        catch {showReadDialog('','クリップボードを直接読めませんでした。案件JSONを貼り付けてください。'); readInput.focus(); return;}
         try {
           const parsed=parseImport(content);
-          if (!parsed.case) throw new Error('案件JSONがありません。全件バックアップは入出力・設定から読み込んでください。');
-          createCase(parsed.case);
-        } catch (error) { showMessage(error.message); }
+          if (!parsed.case) throw new Error('案件JSONがありません。全件バックアップは「入出力・設定」から読み込んでください。');
+          if (!caseHasContent()) {replaceCurrentCase(parsed.case); return;}
+          showReadDialog(content);
+        } catch (error) {showReadDialog(content); readMessage.textContent=error.message;}
+      });
+      readInput.addEventListener('input',()=>{readMessage.textContent='';});
+      document.getElementById('applyRead').addEventListener('click',()=>{
+        try {
+          const parsed=parseImport(readInput.value);
+          if (!parsed.case) throw new Error('案件JSONがありません。全件バックアップは「入出力・設定」から読み込んでください。');
+          if (replaceCurrentCase(parsed.case)) readDialog.close();
+        } catch (error) {readMessage.textContent=error.message;}
       });
       let pendingImport=null;
       const importInput=document.getElementById('importInput');
@@ -838,7 +871,23 @@
           helper.remove(); return copied;
         }
       }
-      document.getElementById('openIo').addEventListener('click',()=>document.getElementById('ioDialog').showModal());
+      const exportDialog=document.getElementById('exportDialog');
+      const exportPreview=document.getElementById('exportPreview');
+      const exportMessage=document.getElementById('exportMessage');
+      let pendingExport=null;
+      document.getElementById('exportCase').addEventListener('click',()=>{
+        pendingExport={id:workspace.activeCaseId,name:caseFileName(),json:JSON.stringify(buildCaseData(),null,2)};
+        exportPreview.value=pendingExport.json;
+        document.getElementById('exportFileName').textContent='ファイル名：'+pendingExport.name;
+        exportMessage.textContent=''; exportDialog.showModal();
+      });
+      document.getElementById('copyCase').addEventListener('click',async()=>{
+        if (!pendingExport) return;
+        const copied=await copyText(pendingExport.json);
+        exportMessage.textContent=copied?'案件JSONをコピーしました。':'コピーできませんでした。上のJSONを選択してコピーしてください。';
+        if (!copied) {exportPreview.focus(); exportPreview.select();}
+      });
+      document.getElementById('openIo').addEventListener('click',()=>{renderCaseList(); document.getElementById('ioDialog').showModal();});
       document.querySelectorAll('[data-close]').forEach(button=>button.addEventListener('click',()=>document.getElementById(button.dataset.close).close()));
       function downloadFile(value,name,type) {
         const url=URL.createObjectURL(value instanceof Blob?value:new Blob([value],{type}));
@@ -911,27 +960,30 @@
         const title=source.normalize('NFC').replace(/[\u0000-\u001f<>:"/\\|?*]/g,'・').replace(/\s+/g,' ').replace(/\.json$/i,'').replace(/[. ]+$/g,'').slice(0,100).trim();
         return title?title+'.json':FALLBACK_CASE_NAME;
       }
-      async function chooseCaseDirectory(saveAfter=false) {
+      function reportCase(value) {exportMessage.textContent=value; ioMessage.textContent=value;}
+      async function chooseCaseDirectory(saveAfter=false,snapshot=pendingExport) {
         let next;
         try {next=await window.showDirectoryPicker({id:'theme-impression-cases',mode:'readwrite'});}
-        catch (error) {if (error?.name!=='AbortError') showMessage('保存先フォルダを選べませんでした。'); return;}
-        if (!await permit(next)) {showMessage('フォルダへの書き込みが許可されませんでした。'); return;}
+        catch (error) {if (error?.name!=='AbortError') reportCase('保存先フォルダを選べませんでした。'); return;}
+        if (!await permit(next)) {reportCase('フォルダへの書き込みが許可されませんでした。'); return;}
         const sameDirectory=caseDirectory?.isSameEntry && await caseDirectory.isSameEntry(next).catch(()=>false);
         caseDirectory=next;
         if (!sameDirectory) {data.caseSaved=null; save();}
         try {await handleRecord('case-directory',{handle:next}); caseRemembered=true;}
         catch {caseRemembered=false;}
         refreshDestinations();
-        if (saveAfter) await writeCase();
+        if (saveAfter) await writeCase(snapshot);
         else ioMessage.textContent='制作JSONの保存先フォルダを設定しました。';
       }
-      async function writeCase() {
-        if (!caseDirectory || writingCase) return;
-        const record=activeRecord(), name=caseFileName(), value=JSON.stringify(buildCaseData(),null,2);
+      async function writeCase(snapshot) {
+        if (!caseDirectory || writingCase || !snapshot) return;
+        const record=workspace.cases.find(item=>item.id===snapshot.id);
+        if (!record) {reportCase('この案件は既に削除されています。'); return;}
+        const {name,json:value}=snapshot;
         const previousSave=record.caseSaved;
         writingCase=true; refreshDestinations();
         try {
-          if (!await permit(caseDirectory)) {showMessage('保存先へのアクセスを再許可してください。'); return;}
+          if (!await permit(caseDirectory)) {reportCase('保存先へのアクセスを再許可してください。'); return;}
           let existing=null;
           try {existing=await caseDirectory.getFileHandle(name);}
           catch (error) {if (error?.name!=='NotFoundError') throw error;}
@@ -945,8 +997,8 @@
           record.caseSaved={name,hash:await hashText(value)};
           if (activeRecord().id===record.id) data.caseSaved=record.caseSaved;
           persistWorkspace();
-          ioMessage.textContent='「'+name+'」を保存しました。';
-        } catch {ioMessage.textContent='案件JSONを保存できませんでした。保存先の状態とアクセス権を確認してください。';}
+          reportCase('「'+name+'」を書き出しました。');
+        } catch {reportCase('案件JSONを書き出せませんでした。保存先の状態とアクセス権を確認してください。');}
         finally {writingCase=false; refreshDestinations();}
       }
       async function chooseBackup(saveAfter=false) {
@@ -990,9 +1042,10 @@
         finally {writingBackup=false; refreshDestinations();}
       }
       document.getElementById('saveCase').addEventListener('click',()=>{
-        if (!directCase) {downloadFile(JSON.stringify(buildCaseData(),null,2),caseFileName(),'application/json'); ioMessage.textContent='案件JSONをダウンロードしました。'; return;}
-        if (!caseDirectory) return chooseCaseDirectory(true);
-        return writeCase();
+        if (!pendingExport) return;
+        if (!directCase) {downloadFile(pendingExport.json,pendingExport.name,'application/json'); reportCase('案件JSONをダウンロードしました。'); return;}
+        if (!caseDirectory) return chooseCaseDirectory(true,pendingExport);
+        return writeCase(pendingExport);
       });
       chooseCaseButton.addEventListener('click',()=>chooseCaseDirectory());
       backupButton.addEventListener('click',()=>{
@@ -1021,15 +1074,6 @@
       }
       document.getElementById('copyJson').addEventListener('click',async()=>{
         ioMessage.textContent=await copyText(JSON.stringify(buildBackupData(),null,2))?'全件JSONをコピーしました。':'全件JSONをコピーできませんでした。';
-      });
-      for (const id of ['copyButton','mobileCopyButton']) document.getElementById(id).addEventListener('click',async()=>{
-        const copied=await copyText(JSON.stringify(buildCaseData(),null,2));
-        showMessage(copied?'案件JSONをコピーしました。Web版GPTにそのまま貼り付けられます。':'案件JSONをコピーできませんでした。ブラウザのクリップボード権限を確認してください。');
-        if (id==='mobileCopyButton') {
-          const button=document.getElementById(id);
-          button.textContent=copied?'コピーしました':'コピーできませんでした';
-          setTimeout(()=>{button.textContent='案件JSONをコピー';},2400);
-        }
       });
       renderImportedData(); renderBackupStatus();
       if (loaded.initial) persistWorkspace();
