@@ -171,17 +171,16 @@
     </main>
   </div>
   <dialog id="readDialog" class="tool-dialog" aria-labelledby="readTitle"><div class="dialog-body"><div class="dialog-head"><h2 id="readTitle">案件JSONを読み込む</h2><button type="button" class="small-btn" data-close="readDialog">閉じる</button></div><p class="hint">案件JSONを貼り付けるか、ファイルを選んでください。</p><p id="readWarning" class="overwrite-warning" hidden></p><label>読み込むJSON<textarea id="readInput" class="json-preview" spellcheck="false" placeholder="ここに案件JSONを貼り付けてください"></textarea></label><input id="readFile" type="file" accept=".json,.txt,application/json,text/plain" hidden><p id="readMessage" class="message" role="status"></p><div class="dialog-row"><button id="applyRead" type="button" class="action primary">コードから読み込み</button><button id="readFileButton" type="button" class="action">ファイルから読み込み</button></div></div></dialog>
-  <dialog id="exportDialog" class="tool-dialog" aria-labelledby="exportTitle"><div class="dialog-body"><div class="dialog-head"><h2 id="exportTitle">案件JSONを書き出す</h2><button type="button" class="small-btn" data-close="exportDialog">閉じる</button></div><p id="exportFileName" class="hint"></p><label>書き出されるJSON<textarea id="exportPreview" class="json-preview" readonly spellcheck="false"></textarea></label><p id="exportMessage" class="message" role="status"></p><div class="dialog-row"><button id="copyCase" type="button" class="action primary">コピー</button><button id="saveCase" type="button" class="action">書き出し</button></div></div></dialog>
+  <dialog id="exportDialog" class="tool-dialog" aria-labelledby="exportTitle"><div class="dialog-body"><div class="dialog-head"><h2 id="exportTitle">案件JSONを書き出す</h2><button type="button" class="small-btn" data-close="exportDialog">閉じる</button></div><p id="exportFileName" class="hint"></p><label>書き出されるJSON<textarea id="exportPreview" class="json-preview" readonly spellcheck="false"></textarea></label><p id="exportMessage" class="message" role="status"></p><div class="dialog-row"><button id="copyCase" type="button" class="action primary">コピー</button><button id="saveCase" type="button" class="action">書き出し</button><button id="chooseCaseDirectory" type="button" class="small-btn">保存先フォルダを設定</button></div><p id="caseDirectoryStatus" class="hint">保存先を確認中です。</p></div></dialog>
   <dialog id="ioDialog" class="tool-dialog" aria-labelledby="ioTitle"><div class="dialog-body">
-    <div class="dialog-head"><div><h2 id="ioTitle">入出力・設定</h2><p class="hint">案件の共有用JSONと、全案件・共通設定のバックアップを扱います。</p></div><button type="button" class="small-btn" data-close="ioDialog">閉じる</button></div>
+    <div class="dialog-head"><div><h2 id="ioTitle">入出力・設定</h2><p class="hint">全案件のバックアップと、共通の候補語・項目を管理します。</p></div><button type="button" class="small-btn" data-close="ioDialog">閉じる</button></div>
     <p id="ioMessage" class="message" role="status"></p>
-    <section class="dialog-section"><h3>案件一覧</h3><p class="hint">タブをしまっても案件は残ります。ここで「削除」を押すと、この端末からすぐに削除します。</p><div id="caseList" class="library-list"></div></section>
-    <section class="dialog-section"><h3>案件JSONの保存先</h3><p id="caseDirectoryStatus" class="hint">保存先を確認中です。</p><div class="dialog-row"><button id="chooseCaseDirectory" type="button" class="small-btn">保存先フォルダを設定</button></div></section>
-    <section class="dialog-section"><h3>読み込む</h3><label>JSONファイルを選ぶ<input id="importFile" type="file" accept=".json,.md,.markdown,.txt,application/json,text/markdown,text/plain"></label><label>またはJSONを貼り付ける<textarea id="importInput" placeholder="案件JSON、全件バックアップ、以前のJSON形式"></textarea></label><div class="dialog-row"><button id="checkImport" type="button" class="small-btn">内容を確認</button></div><div id="importPreview" class="import-preview" hidden></div><div id="importControls" hidden><label for="importMode">読み込み方法</label><select id="importMode"><option value="new">新規案件として追加</option><option value="add">現在の案件へ追加（入力済みは維持）</option><option value="replace">現在の案件を置き換える（設定は維持）</option><option value="settings">共通の候補語・項目を復元</option><option value="full">現在の案件と共通設定を置き換える（旧形式）</option><option value="restore">全件バックアップから復元（現在の全案件を置き換える）</option></select><div class="dialog-row"><button id="applyImport" type="button" class="action primary">この内容を読み込む</button></div></div></section>
     <section class="dialog-section"><h3>全件バックアップ</h3><p class="hint">すべての案件と共通の候補語・項目を「theme-impression-memo.json」に保存します。対応するChromeでは保存先を複数登録できます。変更から2分後、作業が続く場合も最長5分で各ファイルを更新します。クラウドへの同期完了はGoogle DriveやiCloud Drive側で確認してください。</p><div id="backupDestinations" class="backup-destinations" aria-live="polite"></div><p id="backupStatus" class="hint"></p><p id="backupAutoStatus" class="hint" role="status" aria-live="polite"></p><div class="dialog-row"><button id="saveJson" type="button" class="action primary">全件バックアップを書き出す</button><button id="copyJson" type="button" class="small-btn">全件JSONをコピー</button></div><div class="dialog-row"><input id="backupLabel" type="text" maxlength="40" placeholder="保存先の名前（例：iCloud Drive）" aria-label="追加する保存先の名前"><button id="chooseBackup" type="button" class="small-btn">保存先を追加</button></div></section>
+    <section class="dialog-section"><h3>バックアップを読み込む</h3><p class="hint">全件バックアップ、または以前の共通設定バックアップを復元します。案件JSONはホームの「読み込み」を使ってください。</p><label>バックアップファイルを選ぶ<input id="importFile" type="file" accept=".json,application/json"></label><div id="importPreview" class="import-preview" hidden></div><div id="importControls" hidden><div class="dialog-row"><button id="applyImport" type="button" class="action primary">このバックアップを復元</button></div></div></section>
     <section class="dialog-section"><h3>印象項目の候補語を追加</h3><p class="hint">候補語と印象項目は全案件に共通です。</p><p id="settingsMessage" class="message" role="status"></p><form id="libraryForm" class="dialog-row"><input id="libraryWord" type="text" maxlength="120" placeholder="追加する語" aria-label="追加する候補語"><select id="libraryTarget" aria-label="追加先の印象項目"></select><button type="submit" class="small-btn">候補語を追加</button></form></section>
     <section class="dialog-section"><h3>新しい印象項目を作る</h3><form id="categoryForm" class="dialog-row"><input id="categoryName" type="text" maxlength="50" placeholder="項目名" aria-label="新しい印象項目の名前"><select id="categoryGroup" aria-label="新しい項目の大分類"></select><button class="small-btn" type="submit">項目を追加</button></form></section>
     <section class="dialog-section"><h3>追加した候補語・項目</h3><div id="libraryList" class="library-list"></div></section>
+    <section class="dialog-section"><h3>案件一覧</h3><p class="hint">タブをしまっても案件は残ります。ここで「削除」を押すと、この端末からすぐに削除します。</p><div id="caseList" class="library-list"></div></section>
   </div></dialog>
   <script>
     (() => {
@@ -797,7 +796,7 @@
       function readCurrentCase(value) {
         try {
           const parsed=parseImport(value);
-          if (!parsed.case) throw new Error('案件JSONがありません。全件バックアップは「入出力・設定」から読み込んでください。');
+          if (!parsed.case || parsed.library) throw new Error('バックアップは「入出力・設定」から読み込んでください。');
           if (replaceCurrentCase(parsed.case)) readDialog.close();
         } catch (error) {readMessage.textContent=error.message;}
       }
@@ -818,60 +817,57 @@
           readCurrentCase(value);
         } catch {if (readDialog.open && session===readSession) readMessage.textContent='ファイルを読み込めませんでした。';}
       });
-      let pendingImport=null;
-      const importInput=document.getElementById('importInput');
+      let pendingImport=null, pendingImportMode=null, importSequence=0;
       const importPreview=document.getElementById('importPreview');
       const importControls=document.getElementById('importControls');
       const ioMessage=document.getElementById('ioMessage');
-      const importMode=document.getElementById('importMode');
-      function invalidateImport() { pendingImport=null; importPreview.hidden=true; importControls.hidden=true; }
-      importInput.addEventListener('input',invalidateImport);
-      function checkImport() {
+      function invalidateImport() { pendingImport=null; pendingImportMode=null; importPreview.hidden=true; importControls.hidden=true; }
+      function checkImport(source,fileName) {
         invalidateImport();
-        try { pendingImport=parseImport(importInput.value.trim()); }
+        let item;
+        try { item=parseImport(source); }
         catch (error) { ioMessage.textContent=error.message; return; }
-        const item=pendingImport;
+        if (!item.library) { ioMessage.textContent='案件JSONはホームの「読み込み」から読み込んでください。'; return; }
+        pendingImport=item;
+        pendingImportMode=item.cases?'restore':item.case?'full':'settings';
         const names=item.case?Object.keys(item.case.fields):[];
         const customCount=item.library?.sections.reduce((n,section)=>n+Number(section.custom)+section.items.filter(word=>word.custom).length,0) || 0;
+        const effect={restore:'すべての案件と共通設定を置き換えます。',full:'現在の案件と共通設定を置き換えます。ほかの案件は維持します。',settings:'共通設定を置き換えます。案件は維持します。'};
         importPreview.textContent=[
+          'ファイル：'+fileName,
           ...(item.cases?['案件：'+item.cases.length+'件',...item.cases.slice(0,5).map(record=>'・'+caseTitle(record)),...(item.cases.length>5?['ほか '+(item.cases.length-5)+'件']:[])]:[]),
           ...(item.case?['入力項目：'+(names.join('、') || 'なし'),
           '印象タグ：'+item.case.tags.length+'件／印象項目の選択：'+item.case.selectedTerms.length+'件',
           '自由記述：'+(item.case.note?'あり':'なし')]:[]),
           '共通設定：'+(item.library?'あり（追加した候補語・項目 '+customCount+'件）':'なし'),
-          ...(item.savedAt?['保存日時：'+item.savedAt]:[])
+          ...(item.savedAt?['保存日時：'+item.savedAt]:[]),
+          '復元すると：'+effect[pendingImportMode]
         ].join('\n');
         importPreview.hidden=false; importControls.hidden=false;
-        for (const value of ['new','add','replace']) importMode.querySelector('[value="'+value+'"]').disabled=!item.case;
-        importMode.querySelector('[value="settings"]').disabled=!item.library;
-        importMode.querySelector('[value="full"]').disabled=!(item.case && item.library);
-        importMode.querySelector('[value="restore"]').disabled=!item.cases;
-        importMode.value=item.cases?'restore':item.case?'new':'settings'; ioMessage.textContent='内容と読み込み方法を確認してください。';
+        ioMessage.textContent='内容を確認してから復元してください。';
       }
-      document.getElementById('checkImport').addEventListener('click',checkImport);
       document.getElementById('importFile').addEventListener('change',async event=>{
         const file=event.target.files[0]; if (!file) return;
-        invalidateImport();
+        event.target.value=''; invalidateImport(); ioMessage.textContent='';
+        const sequence=++importSequence;
         if (file.size>5000000) { ioMessage.textContent='ファイルが大きすぎます（上限5MB）。'; return; }
-        try { importInput.value=await file.text(); checkImport(); event.target.value=''; }
-        catch { ioMessage.textContent='ファイルを読み込めませんでした。'; }
+        try {
+          const source=await file.text();
+          if (sequence!==importSequence || !document.getElementById('ioDialog').open) return;
+          checkImport(source,file.name);
+        }
+        catch { if (sequence===importSequence) ioMessage.textContent='ファイルを読み込めませんでした。'; }
       });
       document.getElementById('applyImport').addEventListener('click',()=>{
-        if (!pendingImport) return;
-        const mode=importMode.value;
-        if ((mode==='full' && !(pendingImport.case && pendingImport.library)) ||
-            (mode==='restore' && !pendingImport.cases) ||
-            (mode==='settings' && !pendingImport.library) ||
-            ((mode==='new' || mode==='add' || mode==='replace') && !pendingImport.case)) return;
-        const explanation={new:'新しい案件として追加します。既存の案件は維持します。',add:'空欄・印象タグ・未選択の語へ追加します。入力済みの内容と設定は維持します。',replace:'現在の案件を置き換えます。共通設定は維持します。',settings:'共通の候補語・項目をこのJSONで置き換えます。すべての案件に反映されます。',full:'現在の案件と共通の候補語・項目をこのJSONで置き換えます。',restore:'現在の全案件と共通設定を、バックアップの内容で置き換えます。'};
-        if (!confirm(explanation[mode]+'\n\n読み込みますか？')) return;
+        if (!pendingImport || !pendingImportMode) return;
+        const mode=pendingImportMode;
+        const explanation={settings:'共通設定をこのバックアップで置き換えます。案件は維持します。',full:'現在の案件と共通設定をこのバックアップで置き換えます。ほかの案件は維持します。',restore:'すべての案件と共通設定をこのバックアップで置き換えます。'};
+        if (!confirm(explanation[mode]+'\n\n復元しますか？')) return;
         if (mode==='restore') {
           const next={schema:1,cases:pendingImport.cases,activeCaseId:pendingImport.activeCaseId,library:pendingImport.library,lastBackupAt:null};
           try {localStorage.setItem(WORKSPACE_KEY,JSON.stringify(next));}
           catch {ioMessage.textContent='復元した内容をこの端末に保存できませんでした。空き容量を確認してください。'; return;}
           workspace=next; storageBlocked=false; data=loadCase(activeRecord()); renderImportedData(); renderBackupStatus(); persistWorkspace();
-        } else if (mode==='new') {
-          if (!createCase(pendingImport.case)) {ioMessage.textContent='新規案件を保存できませんでした。'; return;}
         } else if (mode==='settings') {
           const savedCase=data.caseSaved;
           const current={fields:{...data.fields},tags:data.quickTags.map(item=>({...item})),
@@ -882,14 +878,12 @@
           renderImportedData();
           if (!save()) {ioMessage.textContent='読み込みましたが、自動保存できません。'; return;}
         } else {
-          const base=mode==='full'?blankCase(normalizeSaved({sections:pendingImport.library.sections})):mode==='replace'?blankCase(data):JSON.parse(JSON.stringify(data));
-          data=applyCase(base,pendingImport.case,mode==='add');
+          data=applyCase(blankCase(normalizeSaved({sections:pendingImport.library.sections})),pendingImport.case,false);
           renderImportedData();
           if (!save()) {ioMessage.textContent='読み込みましたが、自動保存できません。'; return;}
         }
-        ioMessage.textContent='読み込みました。';
-        document.getElementById('ioDialog').close(); showMessage('JSONを読み込みました。');
-        importInput.value=''; document.getElementById('importFile').value='';
+        ioMessage.textContent='バックアップを復元しました。';
+        document.getElementById('ioDialog').close(); showMessage('バックアップを復元しました。');
         invalidateImport();
       });
       async function copyText(value) {
@@ -917,7 +911,10 @@
         exportMessage.textContent=copied?'案件JSONをコピーしました。':'コピーできませんでした。上のJSONを選択してコピーしてください。';
         if (!copied) {exportPreview.focus(); exportPreview.select();}
       });
-      function openIoDialog() { renderCaseList(); document.getElementById('ioDialog').showModal(); }
+      function openIoDialog() {
+        importSequence++; invalidateImport(); ioMessage.textContent='';
+        renderCaseList(); document.getElementById('ioDialog').showModal();
+      }
       document.getElementById('openIo').addEventListener('click',openIoDialog);
       document.getElementById('backupIndicator').addEventListener('click',openIoDialog);
       document.querySelectorAll('[data-close]').forEach(button=>button.addEventListener('click',()=>document.getElementById(button.dataset.close).close()));
@@ -1016,6 +1013,7 @@
           : directCase?'未設定。最初の案件JSON保存時にフォルダを選べます。':'このブラウザでは直接保存できません。通常のダウンロードになります。';
         document.getElementById('caseDirectoryStatus').textContent=caseText;
         chooseCaseButton.textContent=caseDirectory?'保存先フォルダを変更':'保存先フォルダを設定';
+        chooseCaseButton.hidden=!directCase;
         for (const button of caseButtons) button.disabled=!destinationsLoaded || writingCase;
         backupButton.disabled=!destinationsLoaded || writingBackup || storageBlocked;
         chooseCaseButton.disabled=!destinationsLoaded || writingCase || !directCase;
@@ -1103,7 +1101,7 @@
         catch {caseRemembered=false;}
         refreshDestinations();
         if (saveAfter) await writeCase(snapshot);
-        else ioMessage.textContent='制作JSONの保存先フォルダを設定しました。';
+        else reportCase('案件JSONの保存先フォルダを設定しました。');
       }
       async function writeCase(snapshot) {
         if (!caseDirectory || writingCase || !snapshot) return;
