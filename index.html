@@ -284,7 +284,7 @@
             fresh.sections.push({id:String(extra.id),name:extra.name,group:groups.some(g=>g[0]===extra.group)?extra.group:'feeling',custom:true,items:extra.items.filter(x=>x && typeof x.text==='string' && x.text.trim()).map(x=>({text:x.text,state:validState(x.state),custom:true}))});
           }
           fresh.quickTags = Array.isArray(saved.quickTags) ? saved.quickTags.filter(x=>x && typeof x.text==='string' && x.text.trim()).map(x=>({text:x.text,state:x.state===2?2:1})) : [];
-          fresh.activeGroup = saved.activeGroup==='all' || groups.some(g=>g[0]===saved.activeGroup) ? saved.activeGroup : 'feeling';
+          fresh.activeGroup = ['all','selected'].includes(saved.activeGroup) || groups.some(g=>g[0]===saved.activeGroup) ? saved.activeGroup : 'feeling';
           fresh.gapMode = modes.some(m=>m[0]===saved.gapMode) ? saved.gapMode : '';
           fresh.gapText = typeof saved.gapText === 'string' ? saved.gapText : '';
           fresh.gapCandidate = saved.gapCandidate === true;
@@ -444,13 +444,13 @@
       }
       function renderTabs() {
         const host=document.getElementById('groupTabs'); host.replaceChildren();
-        for (const [id,label] of [...groups,['all','すべて表示']]) {
+        for (const [id,label] of [...groups,['all','すべて表示'],['selected','選択した印象のみ']]) {
           const button=document.createElement('button'); button.type='button'; button.className='tab'; button.setAttribute('role','tab');
           button.setAttribute('aria-selected',String(data.activeGroup===id)); button.setAttribute('aria-controls','sections');
-          const count=data.sections.filter(s=>id==='all'||s.group===id).reduce((n,s)=>n+s.items.filter(item=>item.state).length,0);
+          const count=data.sections.filter(s=>id==='all'||id==='selected'||s.group===id).reduce((n,s)=>n+s.items.filter(item=>item.state).length,0);
           button.textContent=label;
           if (count) { const badge=document.createElement('span'); badge.className='tab-count'; badge.textContent='('+count+')'; button.append(badge); }
-          button.addEventListener('click',()=>{data.activeGroup=id; if(id!=='all') document.getElementById('categoryGroup').value=id; renderTabs(); renderSections(); save(); host.querySelector('[aria-selected="true"]').focus();});
+          button.addEventListener('click',()=>{data.activeGroup=id; if(groups.some(group=>group[0]===id)) document.getElementById('categoryGroup').value=id; renderTabs(); renderSections(); save(); host.querySelector('[aria-selected="true"]').focus();});
           host.append(button);
         }
       }
@@ -462,10 +462,16 @@
           character:'キャラクターの魅力や関係。Eagleのキャラ印象タグは正本の実名です。',
           color:'色名などの自由な語も、上の入力欄から印象タグとして登録できます。',
           composition:'テーマが決まった後、必要な行だけ選んでください。',
-          all:'すべての候補を一覧できます。上部の入力欄からも直接選べます。'
+          all:'すべての候補を一覧できます。上部の入力欄からも直接選べます。',
+          selected:'採用・候補にした印象だけを表示します。'
         };
         document.getElementById('groupHint').textContent=hints[data.activeGroup];
-        for (const section of data.sections.filter(s=>data.activeGroup==='all'||s.group===data.activeGroup)) {
+        const selectedOnly=data.activeGroup==='selected';
+        const visibleSections=data.sections.filter(s=>selectedOnly?s.items.some(item=>item.state):data.activeGroup==='all'||s.group===data.activeGroup);
+        if (selectedOnly && !visibleSections.length) {
+          const empty=document.createElement('p'); empty.className='hint'; empty.textContent='選択した印象はまだありません。'; sectionsEl.append(empty);
+        }
+        for (const section of visibleSections) {
           const block=document.createElement('section'); block.className='choice-section';
           const head=document.createElement('div'); head.className='section-head';
           const title=document.createElement('h3'); title.textContent=section.name; head.append(title);
@@ -474,7 +480,7 @@
           if (!section.items.length) {
             const note=document.createElement('span'); note.className='hint'; note.textContent='上の入力欄から語を追加できます'; chips.append(note);
           }
-          for (const item of section.items) {
+          for (const item of section.items.filter(item=>!selectedOnly||item.state)) {
             const wrap=document.createElement('span'); wrap.className='chip-wrap';
             const chip=document.createElement('button'); chip.type='button'; chip.className='chip';
             const updateChip=()=>{
@@ -483,7 +489,7 @@
               chip.setAttribute('aria-label',item.text+'、'+['未選択','採用','候補'][item.state]+'。押すと次の状態');
             };
             updateChip();
-            chip.addEventListener('click',()=>{item.state=(item.state+1)%3; updateChip(); renderTabs(); renderMatches(); save();});
+            chip.addEventListener('click',()=>{item.state=(item.state+1)%3; if (selectedOnly && !item.state) renderSections(); else updateChip(); renderTabs(); renderMatches(); save();});
             wrap.append(chip);
             chips.append(wrap);
           }
@@ -522,7 +528,7 @@
       });
       const categoryGroup=document.getElementById('categoryGroup');
       for (const [id,label] of groups) {const option=document.createElement('option'); option.value=id; option.textContent=label; categoryGroup.append(option);}
-      categoryGroup.value=data.activeGroup==='all'?'feeling':data.activeGroup;
+      categoryGroup.value=groups.some(group=>group[0]===data.activeGroup)?data.activeGroup:'feeling';
       document.getElementById('libraryForm').addEventListener('submit',event=>{
         event.preventDefault();
         const input=document.getElementById('libraryWord'), value=input.value.trim();
@@ -580,7 +586,7 @@
         const base=blankCase(normalizeSaved({sections:workspace.library.sections}));
         const parsed=parseImport(JSON.stringify({format:FORMAT,version:FORMAT_VERSION,case:record.case})).case;
         const next=applyCase(base,parsed,false);
-        next.activeGroup=record.activeGroup==='all' || groups.some(group=>group[0]===record.activeGroup)?record.activeGroup:'feeling';
+        next.activeGroup=['all','selected'].includes(record.activeGroup) || groups.some(group=>group[0]===record.activeGroup)?record.activeGroup:'feeling';
         next.caseSaved=record.caseSaved || null;
         return next;
       }
@@ -684,7 +690,7 @@
         document.getElementById('gapText').value=data.gapText;
         document.getElementById('gapCandidate').checked=data.gapCandidate;
         document.getElementById('generalNote').value=data.note;
-        categoryGroup.value=data.activeGroup==='all'?'feeling':data.activeGroup;
+        categoryGroup.value=groups.some(group=>group[0]===data.activeGroup)?data.activeGroup:'feeling';
         renderLibraryTargetOptions(); renderLibraryList(); renderQuickTags(); renderTabs(); renderSections(); renderMatches(); renderModes(); renderCaseTabs();
       }
       function caseTitle(record) {
