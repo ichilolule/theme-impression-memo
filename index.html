@@ -180,7 +180,7 @@
     <section class="dialog-section"><h3>印象項目の候補語を追加</h3><p class="hint">候補語と印象項目は全案件に共通です。</p><p id="settingsMessage" class="message" role="status"></p><form id="libraryForm" class="dialog-row"><input id="libraryWord" type="text" maxlength="120" placeholder="追加する語" aria-label="追加する候補語"><select id="libraryTarget" aria-label="追加先の印象項目"></select><button type="submit" class="small-btn">候補語を追加</button></form></section>
     <section class="dialog-section"><h3>新しい印象項目を作る</h3><form id="categoryForm" class="dialog-row"><input id="categoryName" type="text" maxlength="50" placeholder="項目名" aria-label="新しい印象項目の名前"><select id="categoryGroup" aria-label="新しい項目の大分類"></select><button class="small-btn" type="submit">項目を追加</button></form></section>
     <section class="dialog-section"><h3>追加した候補語・項目</h3><div id="libraryList" class="library-list"></div></section>
-    <section class="dialog-section"><h3>案件一覧</h3><p class="hint">タブをしまっても案件は残ります。ここで「削除」を押すと、この端末からすぐに削除します。</p><div id="caseList" class="library-list"></div></section>
+    <section class="dialog-section"><h3>案件一覧</h3><p class="hint">内容のある案件は、タブをしまってもここに残ります。空の案件は残りません。ここで「削除」を押すと、この端末からすぐに削除します。</p><div id="caseList" class="library-list"></div></section>
   </div></dialog>
   <script>
     (() => {
@@ -735,12 +735,14 @@
       function archiveCase(id) {
         if (workspace.cases.filter(item=>!item.archived).length<2 || !save()) return;
         const record=workspace.cases.find(item=>item.id===id); if (!record) return;
-        record.archived=true;
+        const hasContent=caseHasContent(record.case);
+        if (hasContent) record.archived=true;
+        else workspace.cases=workspace.cases.filter(item=>item.id!==id);
         if (id===workspace.activeCaseId) {
           workspace.activeCaseId=workspace.cases.find(item=>!item.archived).id;
           data=loadCase(activeRecord()); renderImportedData();
         }
-        persistWorkspace(); renderCaseTabs(); showMessage('案件を一覧へしまいました。');
+        persistWorkspace(); renderCaseTabs(); showMessage(hasContent?'案件を一覧へしまいました。':'空の案件を閉じました。');
       }
       function renderCaseList() {
         const host=document.getElementById('caseList'); host.replaceChildren();
@@ -773,10 +775,11 @@
       const readInput=document.getElementById('readInput');
       const readMessage=document.getElementById('readMessage');
       let readSession=0;
-      function caseHasContent() {
-        return importFields.some(key=>display(data.fields[key])) || data.quickTags.length>0 ||
-          data.sections.some(section=>section.items.some(item=>item.state)) ||
-          !!(data.gapMode || data.gapText.trim() || data.gapCandidate || data.note.trim());
+      function caseHasContent(source=casePayload(data)) {
+        const gap=source.gap || {};
+        return importFields.some(key=>display(source.fields[key])) || source.impressionTags.length>0 ||
+          !!source.selectedTerms?.length ||
+          !!(gap.mode || display(gap.text) || gap.candidate || source.note.trim());
       }
       function replaceCurrentCase(source) {
         const record=activeRecord(), previous={case:record.case,caseSaved:record.caseSaved,activeGroup:record.activeGroup,updatedAt:record.updatedAt};
